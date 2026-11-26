@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [dependencies]
 # The historical reconstruction, used for the reference models and as the judge.
-qsystems = { path = "../q-systems" }
+qsystems = { git = "https://github.com/chrishayuk/q-systems", rev = "627d421" }
 
 [[bin]]
 name = "qlm"

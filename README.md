@@ -9,9 +9,15 @@ crate, and nothing in this repository changes it. It is used for three
 things:
 
 - **The corpus.** Every sentence of every tree with at most one level of
-  embedding, synthesised by the report's rules: 131,424 sentences. A fixed
-  tenth (13,143) is held out, and the rest (118,281) are training sentences.
-- **The deeper test.** 300 sentences of trees with two levels of embedding.
+  embedding, synthesised by the report's rules: 131,424 sentences. In a
+  fixed shuffle, one tenth (13,143) is for development, measured during
+  experiments. Another tenth (13,143) is for confirmation, and is not read
+  until a final evaluation. The rest (105,138) are training sentences.
+- **The deeper tests.**
+  - 300 sentences of trees with two levels of embedding.
+  - 300 more that use only words of the training sentences, so that depth
+    is tested apart from unseen words. Some of these words occur only in
+    the deeper sentences: `CE`, as in `DE CE QUE`.
 - **The judge.** A sentence is grammatical if the report's system, inverted,
   analyses it to exactly one tree. Its depth is read from that tree.
 
@@ -22,11 +28,11 @@ else: no rules and no trees.
 
 Can a learner that sees only sentences recover the structure that generated
 them, and how many sentences does it need? That is Q-LM-001 and
-Q-LM-SAMPLE-001. Each learner is trained on 100, 1,000, 10,000 and 118,281
+Q-LM-SAMPLE-001. Each learner is trained on 100, 1,000, 10,000 and 105,138
 sentences, and measured on:
 
-- **Held-out cross-entropy.** Bits per token, END included, on the 13,143
-  held-out sentences.
+- **Development cross-entropy.** Bits per token, END included, on the
+  13,143 development sentences.
   - The floor is the true distribution, the graph of all 131,424 sentences
     (QSYS-E16). It is uniform over the corpus.
 - **Deeper sentences.** Bits per token on the 300 sentences with two levels
@@ -46,18 +52,20 @@ sentences, and measured on:
 |---|---|---|
 | Kneser–Ney n-gram, n = 2 to 6 | interpolated, one discount of 0.75 | `src/ngram.rs` |
 | merged graph, k = 1 to 4 | the prefix tree of the training sentences, with states merged when their continuations of up to k words agree (k-tails, Biermann and Feldman 1972), counted | `src/ktails.rs` |
-| transformer | 4 layers, width 128, 4 heads, 832,023 parameters; AdamW, 6,000 steps of 64 sentences; the best of every 200 steps on a tenth of its training sentences is kept | `transformer/train.py` |
+| transformer | 4 layers, width 128, 4 heads, 832,023 parameters; AdamW, 6,000 steps of 64 sentences; the best of every 200 steps on a tenth of its training sentences is kept; three seeds | `transformer/train.py` |
 
 ## Running it
 
 ```sh
 cargo build --release
 ./target/release/qlm data data              # the corpus split, subsets, deeper test, vocabulary
-for n in 100 1000 10000 118281; do python3 transformer/train.py data $n 6000; done
+for s in 1 2 3; do for n in 100 1000 10000 105138; do python3 transformer/train.py data $n 6000 $s; done; done
 ./target/release/qlm report data            # every model, as a table
 ```
 
-The results are in [docs/results.md](docs/results.md).
+The first run, kept as the baseline, is
+[docs/results-run1.md](docs/results-run1.md). QLM-002, which corrects it,
+is [docs/results.md](docs/results.md).
 
 ## Licence
 

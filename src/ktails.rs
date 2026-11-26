@@ -124,6 +124,11 @@ impl KTails {
         st
     }
 
+    /// Whether any state is reached by the prefix.
+    pub fn reachable(&self, prefix: &[String]) -> bool {
+        !self.after(prefix).is_empty()
+    }
+
     /// P(token | prefix), zero where no arrow carries it.
     pub fn p(&self, prefix: &[String], w: &str) -> f64 {
         let st = self.after(prefix);

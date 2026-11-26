@@ -1,4 +1,12 @@
-# Results: Q-LM-001 and Q-LM-SAMPLE-001, first run
+# Results: Q-LM-001 and Q-LM-SAMPLE-001, first run (the baseline)
+
+**Kept as it was run, not replaced.** This run used a split of 118,281
+training sentences and 13,143 held out, with no separate confirmation set.
+Its transformer gave some probability to PAD and the start token, and its
+merged graphs had no floor once a prefix left the graph. QLM-002 corrects
+these on a new split (`docs/results.md`). One sentence below was corrected
+after review: the claim that k = 2 was the only learner to produce deeper
+sentences.
 
 One run of every model, with fixed seeds: `qlm data data`, the four
 transformer runs, then `qlm report data`. The full table, as printed, is
@@ -40,9 +48,11 @@ bits per token. It gives every deeper sentence zero.
   all, which costs 8-9 bits per token.
 - At full size, k = 3 reaches 1.1384 bits on held-out sentences, better
   than any n-gram, in 11,822 arrows.
-- **k = 2 at full size is the one learner that found depth.** 28 of its
-  300 samples are grammatical sentences with two or more levels of
-  embedding, which it never saw. Merging states with the same two-word
+- **k = 2 at full size produced the most deeper sentences of any learner.**
+  28 of its 300 samples are grammatical sentences with two or more levels
+  of embedding, which it never saw. It is not the only one: the 3-gram
+  made 21 at full size and the transformer 2 at 1,000 sentences. None of
+  this shows that a recursive rule was recovered. Merging states with the same two-word
   future closes loops in the graph, and some of the loops are the grammar's
   recursion. It also allows 16 of the 300 deeper test sentences. It pays
   for this in grammar: only 84 of its 300 samples are grammatical.

@@ -1,11 +1,17 @@
 """A small decoder-only transformer trained on sentences of the language of
 Colmerauer's grammar, given nothing but the sentences and the vocabulary.
 
-    python3 transformer/train.py data 1000      # train on data/train-1000.txt
+    python3 transformer/train.py data 1000 6000 1   # data/train-1000.txt, 6,000 steps, seed 1
 
-Writes data/transformer-N.bits ("held deep" bits per token, END included,
-then key=value notes) and data/transformer-N.samples (300 sentences, one per
-line), which `qlm report data` reads and judges.
+Writes, for training size N and seed S:
+- data/transformer-N-sS.bits: bits per token (END included) on the development,
+  deeper and deeper-with-corpus-words sentences, the most a next-token
+  distribution strays from summing to 1, then key=value notes;
+- data/transformer-N-sS.samples: 300 sampled sentences, one per line;
+- data/transformer-N-sS.curve: "step bits" on 2,000 development sentences,
+  every 250 steps.
+`qlm report data` reads and judges them. PAD and the start token are never
+predicted: their logits are removed before every probability.
 """
 import math
 import random
@@ -17,8 +23,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 DIR, N = sys.argv[1], int(sys.argv[2])
-SEED = 2026
-STEPS = int(sys.argv[3]) if len(sys.argv) > 3 else 4000
+STEPS = int(sys.argv[3]) if len(sys.argv) > 3 else 6000
+SEED = int(sys.argv[4]) if len(sys.argv) > 4 else 1
 BATCH = 64
 D, LAYERS, HEADS = 128, 4, 4
 MAX_LEN = 256
@@ -39,8 +45,10 @@ index = {w: i for i, w in enumerate(vocab)}
 PAD, BOS, EOS = 0, 1, 2
 
 train_all = read(f"{DIR}/train-{N}.txt")
-held = read(f"{DIR}/held.txt")
+held = read(f"{DIR}/dev.txt")  # development sentences
 deep = read(f"{DIR}/deep.txt")
+deep_seen = read(f"{DIR}/deep-seen.txt")
+curve_set = held[:2000]
 
 # A tenth of the training sentences (at least ten) choose when to stop.
 random.shuffle(train_all)
@@ -94,12 +102,20 @@ def batches(sentences, size, shuffle):
         yield ids[:, :-1], ids[:, 1:]
 
 
+def predict(model, x):
+    """Logits over the tokens that can follow: never PAD or the start."""
+    logits = model(x)
+    logits[..., PAD] = float("-inf")
+    logits[..., BOS] = float("-inf")
+    return logits
+
+
 def bits_per_token(model, sentences):
     model.eval()
     total, tokens = 0.0, 0
     with torch.no_grad():
         for x, y in batches(sentences, 256, False):
-            logits = model(x)
+            logits = predict(model, x)
             nll = F.cross_entropy(logits.reshape(-1, len(vocab)), y.reshape(-1), ignore_index=PAD, reduction="sum")
             total += nll.item()
             tokens += (y != PAD).sum().item()
@@ -112,6 +128,7 @@ params = sum(p.numel() for p in model.parameters())
 opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.1)
 start = time.time()
 best, best_state, step = float("inf"), None, 0
+curve = []
 while step < STEPS:
     for x, y in batches(train, BATCH, True):
         loss = F.cross_entropy(model(x).reshape(-1, len(vocab)), y.reshape(-1), ignore_index=PAD)
@@ -119,6 +136,8 @@ while step < STEPS:
         loss.backward()
         opt.step()
         step += 1
+        if step % 250 == 0:
+            curve.append((step, bits_per_token(model, curve_set)))
         if step % 200 == 0 or step == STEPS:
             v = bits_per_token(model, valid)
             if v < best:
@@ -128,7 +147,16 @@ while step < STEPS:
 secs = time.time() - start
 model.load_state_dict(best_state)
 
-h, d = bits_per_token(model, held), bits_per_token(model, deep)
+h, d, ds = bits_per_token(model, held), bits_per_token(model, deep), bits_per_token(model, deep_seen)
+
+# How far each next-token distribution strays from summing to 1, over the
+# prefixes of 50 held-out and 50 deeper sentences.
+model.eval()
+worst = 0.0
+with torch.no_grad():
+    for x, _ in batches(held[:50] + deep[:50], 100, False):
+        z = F.softmax(predict(model, x).float().cpu().double(), -1).sum(-1)
+        worst = max(worst, (z - 1).abs().max().item())
 
 gen = torch.Generator(device="cpu").manual_seed(SEED)
 model.eval()
@@ -137,16 +165,18 @@ with torch.no_grad():
     for _ in range(SAMPLES):
         ids = [BOS]
         while len(ids) < 200:
-            logits = model(torch.tensor([ids], device=device))[0, -1].float().cpu()
-            logits[PAD] = logits[BOS] = float("-inf")
+            logits = predict(model, torch.tensor([ids], device=device))[0, -1].float().cpu()
             nxt = torch.multinomial(F.softmax(logits, -1), 1, generator=gen).item()
             if nxt == EOS:
                 break
             ids.append(nxt)
         samples.append(" ".join(vocab[i] for i in ids[1:]))
 
-with open(f"{DIR}/transformer-{N}.bits", "w") as f:
-    f.write(f"{h} {d} params={params} steps={STEPS} train_secs={secs:.0f} device={device}\n")
-with open(f"{DIR}/transformer-{N}.samples", "w") as f:
+name = f"{DIR}/transformer-{N}-s{SEED}"
+with open(f"{name}.bits", "w") as f:
+    f.write(f"{h} {d} {ds} {worst} params={params} steps={STEPS} seed={SEED} train_secs={secs:.0f} device={device}\n")
+with open(f"{name}.samples", "w") as f:
     f.write("\n".join(samples) + "\n")
-print(f"transformer-{N}: held {h:.4f} deeper {d:.4f} bits/token; {params} parameters; {secs:.0f} s on {device}")
+with open(f"{name}.curve", "w") as f:
+    f.write("".join(f"{s} {b}\n" for s, b in curve))
+print(f"{name}: held {h:.4f} deeper {d:.4f} deeper-seen {ds:.4f} bits/token; {params} parameters; {secs:.0f} s on {device}")

@@ -26,7 +26,8 @@ use qsystems::tree::Tree;
 
 pub const NAMES: [&str; 4] = ["BEAUCEVILLE", "BENOIT", "GAETANE", "RICHARD"];
 pub const VERBS: [&str; 3] = ["DETRUIT", "ETONNE", "CONSTATE"];
-pub const PARAPHRASE: &str = include_str!("../../q-systems/examples/paraphrase.q");
+/// C70 section 11, as q-systems/examples/paraphrase.q (copied, unchanged).
+pub const PARAPHRASE: &str = include_str!("../grammar/paraphrase.q");
 
 pub type Sentence = Vec<String>;
 
@@ -130,24 +131,25 @@ pub fn analyse(sys: &[System], s: &[String]) -> Option<Tree> {
     }
 }
 
-/// Split the corpus deterministically: every tenth sentence, in a fixed
-/// shuffle, is held out.
-pub fn split(corpus: &[Sentence], seed: u64) -> (Vec<Sentence>, Vec<Sentence>) {
+/// Split the corpus deterministically, in a fixed shuffle: one sentence in
+/// ten for development (measured during experiments), one in ten for
+/// confirmation (not read until a final evaluation), the rest to train on.
+pub fn split(corpus: &[Sentence], seed: u64) -> (Vec<Sentence>, Vec<Sentence>, Vec<Sentence>) {
     let mut idx: Vec<usize> = (0..corpus.len()).collect();
     let mut rng = Rng(seed);
     for i in (1..idx.len()).rev() {
         let j = (rng.draw() as usize) % (i + 1);
         idx.swap(i, j);
     }
-    let (mut train, mut held) = (Vec::new(), Vec::new());
+    let (mut train, mut dev, mut confirm) = (Vec::new(), Vec::new(), Vec::new());
     for (k, &i) in idx.iter().enumerate() {
-        if k % 10 == 0 {
-            held.push(corpus[i].clone());
-        } else {
-            train.push(corpus[i].clone());
+        match k % 10 {
+            0 => dev.push(corpus[i].clone()),
+            1 => confirm.push(corpus[i].clone()),
+            _ => train.push(corpus[i].clone()),
         }
     }
-    (train, held)
+    (train, dev, confirm)
 }
 
 /// Bits per token (END included) of a sentence under next-token
