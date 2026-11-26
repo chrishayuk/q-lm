@@ -1,0 +1,14 @@
+[package]
+name = "q-lm"
+version = "0.1.0"
+edition = "2021"
+description = "Experiments in language modelling on the language of Colmerauer's Q-systems grammar (1970): learners given only sentences, against the grammar as reference"
+license = "Apache-2.0"
+
+[dependencies]
+# The historical reconstruction, used for the reference models and as the judge.
+qsystems = { path = "../q-systems" }
+
+[[bin]]
+name = "qlm"
+path = "src/main.rs"
