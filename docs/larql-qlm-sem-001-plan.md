@@ -176,3 +176,36 @@ Three controls are added.
 
 Version 2 is measured as planned. The same-type relation test is
 reported from version 3.
+
+## Third amendment before measurement: recombined queries, and only learned facts
+
+1. **Only facts the model knows.** A person, or a country, enters an
+   intervention test only if the unintervened model already answers both
+   of its prompts correctly (top-1, both wordings where there are two). In
+   the version-3 swap that means `P lives in` and `P was born in`.
+   - A failed intervention on a fact the model never learned says nothing
+     about representation.
+   - The number admitted is reported per model.
+   - The single-observation people have no birth statement in version 3,
+     and appear in exactly one training line in each world (checked), so
+     they are never admitted.
+2. **A recombined query state.** At a layer before the last, at the last
+   position of `A lives in`:
+   - the entity component is kept;
+   - the relation component is taken from `B was born in`.
+
+   B is another admitted person whose birth city differs from both A's
+   birth city and A's home city. The result counts as a composed query if
+   A's birth city, which neither donor's own answer is, becomes the most
+   probable city.
+   - Reported as the share of (A, B) pairs, over held-out As, beside two
+     outcomes it must be told apart from:
+     - B's birth city winning, which is answer injection from the
+       relation donor;
+     - A's home city winning, where the intervention did nothing.
+   - The magnitude-matched random control is run on the same pairs.
+   - **Counts if** A's birth city wins in at least half the pairs, B's in
+     under a tenth, and the random control in under a tenth.
+3. Every intervention reports the layer at which it is applied, and the
+   positive control at the last layer, where transfer is automatic, is
+   reported apart.
