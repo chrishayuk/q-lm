@@ -56,3 +56,24 @@ The splits are as before (fit 1 to 1,000; compare 1,001 to 3,000; confirm
   control, by at least 0.02 on positions 5+ at 100,000 sentences.
 - **What is reported:** the keys E keeps, by distance and level. They are
   readable, which is the point.
+
+## Arm G, specified before running (after C to E and the storage control)
+
+**Successive, factorised lookups.**
+- Step 1: the local context resolves the next word's class:
+  P(c | the last two classes), the v2 class trigram (seed 1).
+- Step 2: an earlier word resolves the word within that class:
+  P(w | c, x_{t−d}), counted, backed off to P(w | c).
+- Then P_d(w | h) = Σ_c P(c | h) P(w | c, x_{t−d}). The class is fixed by
+  w (hard classes), so the sum has one term. It is normalised by
+  construction.
+- There is one component per d = 2 to 8.
+
+**What is never stored:** any table indexed by (x_{t−1}, x_{t−d}). E's 7.2
+million bindings were exactly that.
+
+**Criterion,** at 100,000 sentences, with weights by position:
+- **G succeeds** if it beats E's keys at positions 5+ with no more stored
+  bindings;
+- **or** it is within 0.005 bits of E overall with at most half E's
+  bindings.

@@ -4,3 +4,4 @@ n=100000 arm=V split=select | all 4.0335 0-1 5.1593 2-4 3.9117 5+ 3.7959 | keys:
 n=100000 arm=V buckets split=select | all 4.0236 0-1 5.1317 2-4 3.8936 5+ 3.7936 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 7237288 
 n=100000 arm=R split=select | all 4.0445 0-1 5.1515 2-4 3.8987 5+ 3.8207 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 9688691 
 n=100000 arm=R buckets split=select | all 4.0431 0-1 5.1317 2-4 3.9057 5+ 3.8208 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 9688691 
+n=100000 arm=G buckets split=select | all 4.0386 0-1 5.1310 2-4 3.8948 5+ 3.8177 | keys: successive g2-g8 | stored bindings 1402120 

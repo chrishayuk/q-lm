@@ -84,6 +84,42 @@ def key_of(tmpl, ids, t):
     return ("cw", node[v], x)
 
 
+class Successive:
+    """Arm G: P(w | h) = P(c(w) | the last two classes) * P(w | c(w), x_{t-d}),
+    backed off to P(w | c(w)). Nothing indexed by (x_{t-1}, x_{t-d}) is
+    stored."""
+
+    def __init__(self, d, cm):
+        self.d, self.cm = d, cm
+        self.c = collections.defaultdict(collections.Counter)  # (class, earlier word) -> w
+        for s in core.enc:
+            seq = s + [END]
+            for t in range(len(seq)):
+                if t - d < 0:
+                    continue
+                w = seq[t]
+                cw = cm.END_C if w == END else cm.hard[w]
+                self.c[(cw, seq[t - d])][w] += 1
+        self.ct = {k: (sum(c.values()), len(c)) for k, c in self.c.items()}
+        self.bindings = sum(len(c) for c in self.c.values())
+
+    def probs(self, s):
+        ids = [wid[x] for x in s]
+        base = self.cm.probs(s)  # P(c(w) | h) * P(w | c(w))
+        out = []
+        for t in range(len(ids) + 1):
+            w = END if t == len(ids) else ids[t]
+            cw = self.cm.END_C if w == END else self.cm.hard[w]
+            pwc = self.cm.Pw[cw, w]
+            if t - self.d < 0 or (cw, ids[t - self.d]) not in self.ct or pwc == 0:
+                out.append(base[t])
+                continue
+            tot, nd = self.ct[(cw, ids[t - self.d])]
+            p_in = max(self.c[(cw, ids[t - self.d])][w] - D_, 0) / tot + D_ * nd / tot * pwc
+            out.append(max(base[t] / pwc * p_in, 1e-12))  # P(c | h) * P(w | c, x)
+        return out
+
+
 class Model:
     """P(w | v, key), backing off to the bigram P(w | v), both counted on `sents`."""
 
@@ -133,6 +169,8 @@ class Model:
 enc = core.enc
 if a.arm == "A":  # v2 alone (5-gram + 4 class models)
     chosen, util = [], {}
+elif a.arm == "G":
+    chosen, util = [], {}
 elif a.arm in ("R", "V"):
     chosen = [("cw" if x.startswith("cw") else x[0], int("".join(ch for ch in x if ch.isdigit()))) for x in a.keys.split(",")]
     RANDOM = a.arm == "R"
@@ -159,6 +197,8 @@ else:
         util[tm] = (gain, cost, gain - cost)
     chosen = [tm for tm in templates if util[tm][2] > 0]
 models = [Model(tm, enc) for tm in chosen]
+if a.arm == "G":
+    models = [Successive(d, classes[0]) for d in range(2, 9)]
 t1 = time.time()
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
 cls = [[m.probs(dev[i]) for m in classes] for i in range(7000)]
@@ -187,7 +227,7 @@ for i in evalr:
             e[0] += b
             e[1] += 1
 res = " ".join(f"{k} {B[k][0] / B[k][1]:.4f}" for k in ("all", "0-1", "2-4", "5+"))
-kept = ", ".join(f"{k}{d}" for k, d in chosen) or "none"
+kept = ", ".join(f"{k}{d}" for k, d in chosen) or ("successive g2-g8" if a.arm == "G" else "none")
 print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} | {time.time() - t0:.0f}s")
 if util:
     for tm in templates:

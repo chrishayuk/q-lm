@@ -132,3 +132,44 @@ between:**
 **Where it stands:** 4.024 overall.
 - The 5-gram's window, in a transformer: 3.935, 0.089 better.
 - The full-context transformer: 3.760, 0.264 better.
+
+## Addendum: arm G, successive factorised lookups
+
+Specified in the plan before running. Step 1: the local class trigram
+gives P(c | h). Step 2: P(w | c, x_{t−d}), one component per d = 2 to 8.
+No table indexed by (x_{t−1}, x_{t−d}) is stored. 100,000 sentences, with
+weights by position.
+
+| model | stored bindings | all | 2–4 | 5+ |
+|---|---:|---:|---:|---:|
+| v2 alone | 0 | 4.0497 | 3.9074 | 3.8312 |
+| **G: successive** | **1.40 M** | 4.0386 | 3.8948 | 3.8177 |
+| R: random-distance keys | 9.69 M | 4.0431 | 3.9057 | 3.8208 |
+| E's keys (flat, materialised) | 7.24 M | **4.0236** | **3.8936** | **3.7936** |
+
+**The criterion fails both ways.**
+- G does not beat E at positions 5+ (3.8177 against 3.7936).
+- With 19% of E's bindings, it is 0.015 bits behind overall, against the
+  0.005 allowed.
+
+**But it is the more efficient use of storage:**
+- G gains 0.011 bits overall from 1.40 M bindings, about 0.008 bits per
+  million;
+- E gains 0.026 from 7.24 M, about 0.004 per million;
+- G beats the random-distance keys while storing a seventh as much.
+
+**What the factorisation gives up.** In G, the distant word chooses
+*within* the class the local context predicts. It cannot change which
+class comes next, and it cannot interact with the recent word itself. E's
+joint (recent word, distant word) keys can do both, at the price of
+materialising them. The extra 0.015 bits E gets is the value of that
+interaction.
+
+The successive form tested here is the simplest one:
+- a hard class as the intermediate result;
+- one distant word.
+
+The plan's richer intermediates are not built yet:
+- weighted distributions over classes;
+- kept bindings: actor, object;
+- a second lookup chosen by the first's result.
