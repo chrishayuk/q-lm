@@ -13,6 +13,12 @@ Writes, for training size N and seed S:
 - data/transformer-N-sS.pt: the kept weights, for transformer/bench.py.
 `qlm report data` reads and judges them.
 
+With ARCH=ablate, one code path for the architecture ablation, switched by
+POS (learned | rope), NORM (layer | rms), FFN (gelu | swiglu) and TIE (0 | 1).
+The gated feed-forward has width 341 to match the parameters of the
+ungated one at 512. Files are named abl-TAG-N-sS: TAG is base, or the
+changes joined by "+" (rope, rms, swiglu, tie).
+
 With ARCH=llama, the same for LlamaForCausalLM (RMSNorm, rotary positions,
 gated SiLU feed-forward of width 512, tied embeddings), which LARQL's
 VINDEX3 admits.
@@ -119,6 +125,75 @@ if ARCH == "gpt2":
 
         def forward(self, ids):
             return self.hf(input_ids=ids).logits
+elif ARCH == "ablate":
+    POS, NORM, FFN = os.environ.get("POS", "learned"), os.environ.get("NORM", "layer"), os.environ.get("FFN", "gelu")
+    TIE = os.environ.get("TIE", "0") == "1"
+    changes = [c for c, on in [("rope", POS == "rope"), ("rms", NORM == "rms"), ("swiglu", FFN == "swiglu"), ("tie", TIE)] if on]
+    ARCH = "abl-" + ("+".join(changes) or "base")
+    HD = D // HEADS
+
+    def norm():
+        return nn.RMSNorm(D) if NORM == "rms" else nn.LayerNorm(D)
+
+    def rope(x):  # x: (batch, heads, time, head dim)
+        t = x.shape[2]
+        inv = 1.0 / (10000 ** (torch.arange(0, HD, 2, device=x.device).float() / HD))
+        ang = torch.arange(t, device=x.device).float()[:, None] * inv[None]
+        cos, sin = ang.cos(), ang.sin()
+        a, b = x[..., : HD // 2], x[..., HD // 2 :]
+        return torch.cat([a * cos - b * sin, a * sin + b * cos], -1)
+
+    class Attn(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.qkv, self.o = nn.Linear(D, 3 * D), nn.Linear(D, D)
+
+        def forward(self, x):
+            b, t, _ = x.shape
+            q, k, v = self.qkv(x).view(b, t, 3, HEADS, HD).permute(2, 0, 3, 1, 4)
+            if POS == "rope":
+                q, k = rope(q), rope(k)
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+            return self.o(y.transpose(1, 2).reshape(b, t, D))
+
+    class Mlp(nn.Module):
+        def __init__(self):
+            super().__init__()
+            if FFN == "swiglu":
+                self.g, self.u, self.d = nn.Linear(D, 341), nn.Linear(D, 341), nn.Linear(341, D)
+            else:
+                self.u, self.d = nn.Linear(D, 4 * D), nn.Linear(4 * D, D)
+
+        def forward(self, x):
+            return self.d(F.silu(self.g(x)) * self.u(x)) if FFN == "swiglu" else self.d(F.gelu(self.u(x)))
+
+    class AblBlock(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.n1, self.n2, self.attn, self.mlp = norm(), norm(), Attn(), Mlp()
+
+        def forward(self, x):
+            x = x + self.attn(self.n1(x))
+            return x + self.mlp(self.n2(x))
+
+    class Model(nn.Module):  # noqa: F811 (replaces the model above)
+        def __init__(self):
+            super().__init__()
+            self.tok = nn.Embedding(len(vocab), D)
+            self.pos = nn.Embedding(MAX_LEN, D) if POS == "learned" else None
+            self.blocks = nn.ModuleList(AblBlock() for _ in range(LAYERS))
+            self.ln = norm()
+            self.out = None if TIE else nn.Linear(D, len(vocab))
+
+        def forward(self, ids):
+            x = self.tok(ids)
+            if self.pos is not None:
+                x = x + self.pos(torch.arange(ids.shape[1], device=ids.device))
+            for b in self.blocks:
+                x = b(x)
+            x = self.ln(x)
+            return x @ self.tok.weight.T if self.out is None else self.out(x)
+
 elif ARCH == "llama":
     from transformers import LlamaConfig, LlamaForCausalLM
 
