@@ -74,6 +74,8 @@ rule pruning (QLM-004) and matched inference cost (QLM-PERF-001) are
 narrows the depth gap to the grammar to almost nothing at full size, is
 [docs/results-architectures.md](docs/results-architectures.md). QLM-005,
 three generated languages, is [docs/results-qlm005.md](docs/results-qlm005.md).
+Which part of the transformer carries depth (rotary positions) is
+[docs/results-qlm-arch-001.md](docs/results-qlm-arch-001.md).
 
 ## Direction
 
