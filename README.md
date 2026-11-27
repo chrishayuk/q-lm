@@ -88,7 +88,10 @@ Llama: [docs/results-larql-qlm-sem-001-v3.md](docs/results-larql-qlm-sem-001-v3.
 where the fact is looked up (at the answer position, not the entity's):
 [docs/results-larql-qlm-enrich-001.md](docs/results-larql-qlm-enrich-001.md);
 where the answer forms, and a fact edited from an external table with no
-weight changed: [docs/results-larql-qlm-resolve-001.md](docs/results-larql-qlm-resolve-001.md).
+weight changed: [docs/results-larql-qlm-resolve-001.md](docs/results-larql-qlm-resolve-001.md);
+an external graph driven only by activations (relation readable, entity
+the bottleneck; facts edited and added at 42 to 62%):
+[docs/results-larql-qlm-external-001.md](docs/results-larql-qlm-external-001.md).
 
 ## Direction
 
