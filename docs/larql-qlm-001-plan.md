@@ -1,6 +1,16 @@
 # LARQL-QLM-001 plan: does the transformer keep depth and suppress it?
 
-Written before any probing. Results are reported against this plan.
+Written before any probing, and amended once before any probing (below).
+Results are reported against the amended plan.
+
+**Amendments (before any probing).**
+- Gate 0 asks for full numerical parity, not a smoke test.
+- The probes are controlled for token, position and length, and include a
+  continuous depth direction.
+- The logit lens is diagnostic only.
+- Interventions are chosen on one half of the deeper sentences and
+  verified on the other.
+- The negative verdict is renamed "no detected recursive mechanism".
 
 ## Question
 
@@ -34,8 +44,17 @@ under study is a **Llama arm**.
   training sentences.
 - LARQL's execution must match PyTorch on it.
 
+**Gate 0 also needs full numerical parity**, not ten log-probabilities.
+- LARQL's reference and production backends against PyTorch, at every
+  layer's residual stream (`shannon layer-dump` / `layer-diff`) and at the
+  output.
+- On 20 development and 20 deeper sentences, every position, for the
+  models studied.
+- The largest difference is reported.
+
 If gate 0 fails, the question is asked of a model that doesn't show the
-behaviour, so it stops there. First check, at 1,000 sentences, seed 1:
+behaviour, or with an instrument that hasn't been qualified, so it stops
+there. First check, at 1,000 sentences, seed 1 (a smoke test only):
 - development 1.058 bits per token, deeper with corpus words 2.37 (the
   custom transformer gave 2.82 to 2.94);
 - LARQL `observe --backend reference` matches PyTorch's log-probabilities
@@ -57,23 +76,34 @@ behaviour, so it stops there. First check, at 1,000 sentences, seed 1:
    suppression is known.
 2. **Depth in the residual stream.** LARQL `observe` records of the
    carrier writes at every layer and position.
-   - A linear probe for the current depth (0, 1, 2) is trained on
-     development prefixes, which only reach depth 1.
-   - It is tested on deeper prefixes. Does depth 2 have a direction, or
-     does it collapse onto depth 1?
+   - A continuous depth direction is fitted by linear regression on
+     development prefixes, which only reach depths 0 and 1.
+   - It is tested on deeper prefixes. Do depth-2 positions project beyond
+     depth 1 along it, or collapse onto it?
    - Separately, a probe trained on depth 0, 1 and 2 (half the deeper
      sentences) and tested on the other half tells whether depth 2 is
      linearly present at all.
+   - **Controls.** Every probe is compared against the same probe on the
+     current token's identity, its absolute position and the sentence
+     length, alone and together. Depth must be decodable beyond what those
+     explain. Probes are also run on a randomly initialised model of the
+     same shape.
 3. **The right continuation at intermediate layers.** At the deeper
    positions with the largest loss, the rank and probability of the
    correct next word are read through each layer's normalisation and
    output head (a logit lens).
    - Kept and suppressed predicts that an intermediate layer ranks the
-     correct word higher than the output does.
-   - Bounded predicts that no layer does.
+     correct word higher than the output does. No such layer is consistent
+     with either reading.
+   - The lens reads intermediate states through a head trained for the
+     last layer, so it is diagnostic evidence, not proof of what is
+     computed.
 4. **Causal check**, only if measure 3 finds a layer that does better.
    Ablate or patch the later components that lower the correct word, then
-   measure deeper bits and development bits. Done through LARQL's
+   measure deeper bits and development bits.
+   - The intervention (which components, at which layers) is chosen on 50
+     of the 100 deeper sentences.
+   - It is then measured, unchanged, on the other 50. Done through LARQL's
    intervention surface, under its contract for causal claims. A projected
    contribution is not a counterfactual.
 5. **Across training size.** Measures 1 to 3 on the models trained on
@@ -86,11 +116,16 @@ behaviour, so it stops there. First check, at 1,000 sentences, seed 1:
   - measure 3 finds a layer whose correct-word rank beats the output's on
     most high-loss deeper positions, and
   - measure 4 recovers at least a third of the gap to the 1,000-sentence
-    model's deeper bits, at a cost of under 1% on development.
-- **Bounded:**
+    model's deeper bits on the held-out 50, at a cost of under 1% on
+    development.
+- **No detected recursive mechanism:**
   - no layer beats the output in measure 3, and
-  - the depth-2 probe of measure 2 does no better than chance at separating
-    depth 2 from depth 1.
+  - the controlled depth-2 probe of measure 2 does no better than chance at
+    separating depth 2 from depth 1.
+
+  This is not evidence that recursion is absent. It may be nonlinear,
+  distributed, or unreadable through the output head. Only the positive
+  causal result is strong.
 - Any other combination is reported as found, without a label.
 
 The deeper sentences are a test set here as in QLM-004. Nothing is tuned on
