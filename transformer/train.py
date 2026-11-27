@@ -9,7 +9,8 @@ Writes, for training size N and seed S:
   distribution strays from summing to 1, then key=value notes;
 - data/transformer-N-sS.samples: 300 sampled sentences, one per line;
 - data/transformer-N-sS.curve: "step bits" on 2,000 development sentences,
-  every 250 steps.
+  every 250 steps;
+- data/transformer-N-sS.pt: the kept weights, for transformer/bench.py.
 `qlm report data` reads and judges them. PAD and the start token are never
 predicted: their logits are removed before every probability.
 """
@@ -177,6 +178,7 @@ with open(f"{name}.bits", "w") as f:
     f.write(f"{h} {d} {ds} {worst} params={params} steps={STEPS} seed={SEED} train_secs={secs:.0f} device={device}\n")
 with open(f"{name}.samples", "w") as f:
     f.write("\n".join(samples) + "\n")
+torch.save({k: t.cpu() for k, t in best_state.items()}, f"{name}.pt")
 with open(f"{name}.curve", "w") as f:
     f.write("".join(f"{s} {b}\n" for s, b in curve))
 print(f"{name}: held {h:.4f} deeper {d:.4f} deeper-seen {ds:.4f} bits/token; {params} parameters; {secs:.0f} s on {device}")

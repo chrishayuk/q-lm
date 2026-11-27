@@ -4,6 +4,14 @@ The first run is kept as the baseline in [results-run1.md](results-run1.md).
 This file is the qualified rerun, and the first learner of hierarchical
 structure.
 
+> **Correction.** The learned grammar's scores here come after five rounds
+> of inside–outside, which falls short of convergence. Run to convergence,
+> it scores better on the corpus and worse on deeper sentences: 2.19 to
+> 2.37 bits, not 1.59, with 1 to 19 deeper samples in 300, not 34 to 44.
+> It still derives every deeper sentence of corpus words. See
+> [results-qlm004.md](results-qlm004.md), which also measures the
+> transformer's inference cost on the same footing.
+
 ## What changed from the first run
 
 - **The split.** 105,138 training sentences, 13,143 development sentences,

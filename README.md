@@ -61,11 +61,16 @@ cargo build --release
 ./target/release/qlm data data              # the corpus split, subsets, deeper test, vocabulary
 for s in 1 2 3; do for n in 100 1000 10000 105138; do python3 transformer/train.py data $n 6000 $s; done; done
 ./target/release/qlm report data            # every model, as a table
+./target/release/qlm em data 10000          # inside–outside, round by round
+./target/release/qlm mdl data 10000         # pruning by expected rule count
+python3 transformer/bench.py data 10000 1   # transformer cost per next token
 ```
 
 The first run, kept as the baseline, is
 [docs/results-run1.md](docs/results-run1.md). QLM-002, which corrects it,
-is [docs/results.md](docs/results.md).
+is [docs/results.md](docs/results.md). Inside–outside convergence,
+rule pruning (QLM-004) and matched inference cost (QLM-PERF-001) are
+[docs/results-qlm004.md](docs/results-qlm004.md).
 
 ## Licence
 

@@ -21,6 +21,7 @@
 
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Subst {
     pub words: HashMap<String, u32>,
     pub word_list: Vec<String>,
@@ -35,6 +36,9 @@ pub struct Subst {
     /// Members of each category, for inspection (up to a few each).
     pub examples: HashMap<u32, Vec<String>>,
     pub member_count: HashMap<u32, usize>,
+    /// Expected count of each rule (lhs, b, c, lexical) on the training
+    /// sentences, from the last E-step of `em`.
+    pub expected: HashMap<(u32, u32, u32, bool), f64>,
 }
 
 #[derive(Clone, Debug)]
@@ -177,6 +181,7 @@ impl Subst {
             categories: cat_of.len(),
             examples,
             member_count,
+            expected: HashMap::new(),
         }
     }
 
@@ -241,6 +246,7 @@ impl Subst {
                 }
             }
             history.push(ll);
+            self.expected = counts.clone();
             // M-step: every existing rule, its expected count plus the smoothing.
             let mut by_lhs: HashMap<u32, Vec<(Rhs, f64)>> = HashMap::new();
             for (&a, rs) in &self.rules {
@@ -284,6 +290,106 @@ impl Subst {
             }
             self.rules.insert(a, list);
         }
+    }
+
+    /// Remove every rule whose expected count (from the last E-step) is below
+    /// `tau`, then every category that can no longer finish a derivation or
+    /// be reached from the start, and the rules that mention them. The
+    /// remaining rules of each category are renormalised. Uses no sentence
+    /// beyond those the counts came from.
+    pub fn prune(&mut self, tau: f64) {
+        let keep = |a: u32, rhs: &Rhs, e: &HashMap<(u32, u32, u32, bool), f64>| {
+            let key = match rhs {
+                Rhs::Word(w) => (a, *w, 0, true),
+                Rhs::Pair(b, c) => (a, *b, *c, false),
+            };
+            e.get(&key).copied().unwrap_or(0.0) >= tau
+        };
+        let mut by_lhs: HashMap<u32, Vec<(Rhs, f64)>> = HashMap::new();
+        for (&a, rs) in &self.rules {
+            let kept: Vec<(Rhs, f64)> = rs.iter().filter(|(r, _)| keep(a, r, &self.expected)).cloned().collect();
+            if !kept.is_empty() {
+                by_lhs.insert(a, kept);
+            }
+        }
+        // Productive: has a derivation that finishes.
+        let mut productive: std::collections::HashSet<u32> = std::collections::HashSet::new();
+        loop {
+            let before = productive.len();
+            for (&a, rs) in &by_lhs {
+                if !productive.contains(&a)
+                    && rs.iter().any(|(r, _)| match r {
+                        Rhs::Word(_) => true,
+                        Rhs::Pair(b, c) => productive.contains(b) && productive.contains(c),
+                    })
+                {
+                    productive.insert(a);
+                }
+            }
+            if productive.len() == before {
+                break;
+            }
+        }
+        for rs in by_lhs.values_mut() {
+            rs.retain(|(r, _)| match r {
+                Rhs::Word(_) => true,
+                Rhs::Pair(b, c) => productive.contains(b) && productive.contains(c),
+            });
+        }
+        by_lhs.retain(|a, rs| productive.contains(a) && !rs.is_empty());
+        // Reachable from the start.
+        let mut reach = std::collections::HashSet::from([self.start]);
+        let mut todo = vec![self.start];
+        while let Some(a) = todo.pop() {
+            for (r, _) in by_lhs.get(&a).into_iter().flatten() {
+                if let Rhs::Pair(b, c) = r {
+                    for x in [*b, *c] {
+                        if reach.insert(x) {
+                            todo.push(x);
+                        }
+                    }
+                }
+            }
+        }
+        by_lhs.retain(|a, _| reach.contains(a));
+        self.categories = by_lhs.len();
+        self.set_rules(by_lhs);
+    }
+
+    /// Two-part description length, in bits: the grammar, then the training
+    /// sentences given the grammar.
+    /// - Each category: its number of rules (Elias gamma). Each rule: one bit
+    ///   for its kind, then two categories (2 log2 C) or a word (log2 V),
+    ///   then its probability at (1/2) log2 N bits, N the training tokens.
+    /// - Each sentence: -log2 of 0.999 P(s) + 0.001 (1/(V+1))^(len+1), the
+    ///   same floor as the development scores, so that a sentence the
+    ///   grammar cannot derive costs a uniform spelling, not infinity.
+    ///
+    /// Returns (grammar bits, data bits, training sentences not derivable).
+    pub fn description_length(&self, sentences: &[Vec<String>]) -> (f64, f64, usize) {
+        let c = self.categories.max(2) as f64;
+        let v = self.words.len() as f64;
+        let n_tokens: f64 = sentences.iter().map(|s| s.len() as f64 + 1.0).sum();
+        let gamma = |n: usize| 2.0 * (n as f64).log2().floor() + 1.0;
+        let mut g = 0.0;
+        for rs in self.rules.values() {
+            g += gamma(rs.len());
+            for (r, _) in rs {
+                g += 1.0 + 0.5 * n_tokens.log2();
+                g += match r {
+                    Rhs::Word(_) => v.log2(),
+                    Rhs::Pair(_, _) => 2.0 * c.log2(),
+                };
+            }
+        }
+        let (mut d, mut missing) = (0.0, 0);
+        for s in sentences {
+            let p = self.probability(s);
+            missing += (p == 0.0) as usize;
+            let floor = (1.0 / (v + 1.0)).powi(s.len() as i32 + 1);
+            d -= (0.999 * p + 0.001 * floor).log2();
+        }
+        (g, d, missing)
     }
 
     /// The inside chart of a sentence (as word ids): chart[i][j] maps a

@@ -1,6 +1,8 @@
 //! qlm data DIR      write the corpus split and the deeper test sentences
 //! qlm report DIR    the reference models and the n-gram baselines, and any
 //!                   learner whose results are in DIR (see transformer/)
+//! qlm mdl DIR N     QLM-004: prune the grammar learned from N sentences by
+//!                   expected rule count, choosing by description length
 //! qlm judge FILE    judge a file of sentences, one per line, by the report's
 //!                   analysis
 
@@ -577,6 +579,126 @@ fn prefix(dir: &str, n: usize) {
     println!("  first word: total variation between exact and 20,000 direct samples {tv:.4} ({drawn} finished)");
 }
 
+/// Bits per token (END included) of a learned grammar, with the floor used
+/// throughout: 0.999 P(s) + 0.001 of a uniform spelling.
+fn floored(m: &q_lm::subst::Subst, set: &[Sentence], v: f64) -> f64 {
+    let (mut total, mut tokens) = (0.0, 0usize);
+    for s in set {
+        let floor = (1.0 / v).powi(s.len() as i32 + 1);
+        total -= (0.999 * m.probability(s) + 0.001 * floor).log2();
+        tokens += s.len() + 1;
+    }
+    total / tokens as f64
+}
+
+/// Inside–outside convergence: the grammar learned from n sentences, scored
+/// after each of a set of rounds.
+fn em_curve(dir: &str, n: usize) {
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let deep_seen = read(&format!("{dir}/deep-seen.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let v = vocab.len() as f64 + 1.0;
+    let sub = &train[..n];
+    let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
+    let mut m = Subst::train(sub, &vocab);
+    println!("| rounds | training bits/token | development (first 200) bits/token | deeper, corpus words (first 100) bits/token | P(finishes) | grammatical samples | not in training | deeper | seconds so far |");
+    println!("|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    let t = Instant::now();
+    let mut done = 0;
+    for r in [0usize, 1, 2, 3, 5, 8, 12, 20, 30, 40] {
+        if r > done {
+            m.em(sub, r - done, 1e-3);
+        }
+        done = r;
+        let tb = floored(&m, sub, v);
+        let mut rng = Rng(SAMPLE_SEED);
+        let finished: Vec<Sentence> = (0..SAMPLES).filter_map(|_| m.sample(&mut rng, 200)).collect();
+        let j = judge_all(&finished, &sub_set);
+        println!(
+            "| {r} | {tb:.4} | {:.4} | {:.4} | {:.6} | {} of {} | {} | {} | {:.0} |",
+            floored(&m, &dev[..200], v), floored(&m, &deep_seen[..100], v), m.termination(),
+            j.grammatical, finished.len(), j.novel_grammatical, j.deep_grammatical, t.elapsed().as_secs_f64()
+        );
+    }
+}
+
+/// QLM-004: rule pruning by minimum description length. The grammar learned
+/// from n sentences (with 5 rounds of inside–outside) loses every rule whose
+/// expected count is below tau, then the categories that can no longer
+/// finish or be reached; 5 more rounds re-estimate it. The tau chosen is the
+/// one with the shortest two-part description of the training sentences:
+/// nothing but the training sentences decides it.
+fn mdl(dir: &str, n: usize) {
+    use q_lm::prefix::Prefix;
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let deep = read(&format!("{dir}/deep.txt"));
+    let deep_seen = read(&format!("{dir}/deep-seen.txt"));
+    let negative = read(&format!("{dir}/negative.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let v = vocab.len() as f64 + 1.0;
+    let sub = &train[..n];
+    let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
+    let t = Instant::now();
+    let mut base = Subst::train(sub, &vocab);
+    base.em(sub, 5, 1e-3);
+    eprintln!("{n}: base grammar in {:.1} s", t.elapsed().as_secs_f64());
+    println!("| expected count kept | categories | rules | grammar bits | data bits | total bits | training not derivable | development bits/token | development derivable | deeper, corpus words (first 100) bits/token | deeper derivable | deeper, corpus words derivable | ungrammatical derivable | P(finishes) | grammatical samples | not in training | deeper | ms per next-token distribution | pruned and re-estimated in |");
+    println!("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    for tau in [0.0, 0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0] {
+        let t = Instant::now();
+        let mut m = base.clone();
+        m.prune(tau);
+        if !m.rules.contains_key(&m.start) {
+            println!("| {tau} | nothing left: the start category lost every rule |");
+            break;
+        }
+        m.em(sub, 5, 1e-3);
+        let secs = t.elapsed().as_secs_f64();
+        let (g, d, missing) = m.description_length(sub);
+        let derivable = |set: &[Sentence]| set.iter().filter(|s| m.probability(s) > 0.0).count();
+        let (mut total, mut tokens, mut ok) = (0.0, 0usize, 0);
+        for s in &dev {
+            let p = m.probability(s);
+            ok += (p > 0.0) as usize;
+            let floor = (1.0 / v).powi(s.len() as i32 + 1);
+            total -= (0.999 * p + 0.001 * floor).log2();
+            tokens += s.len() + 1;
+        }
+        let mut rng = Rng(SAMPLE_SEED);
+        let finished: Vec<Sentence> = (0..SAMPLES).filter_map(|_| m.sample(&mut rng, 200)).collect();
+        let j = judge_all(&finished, &sub_set);
+        // Next-token cost, as `qlm prefix`, on the first 50 development sentences.
+        let pf = Prefix::new(&m);
+        let (mut ns, mut count) = (0.0, 0);
+        for s in &dev[..50] {
+            let mut r = pf.start();
+            for i in 0..=s.len() {
+                let t = Instant::now();
+                let _ = pf.next(&r);
+                ns += t.elapsed().as_secs_f64();
+                count += 1;
+                if i < s.len() {
+                    match m.word_id(&s[i]) {
+                        Some(w) => pf.step(&mut r, w),
+                        None => break,
+                    }
+                }
+            }
+        }
+        println!(
+            "| {tau} | {} | {} | {g:.0} | {d:.0} | {:.0} | {missing} | {:.4} | {ok} | {:.4} | {} of {} | {} of {} | {} of {} | {:.6} | {} of {} | {} | {} | {:.2} | {secs:.1} s |",
+            m.categories, m.size(), g + d, total / tokens as f64, floored(&m, &deep_seen[..100], v),
+            derivable(&deep), deep.len(), derivable(&deep_seen), deep_seen.len(), derivable(&negative), negative.len(),
+            m.termination(), j.grammatical, finished.len(), j.novel_grammatical, j.deep_grammatical,
+            1000.0 * ns / count as f64
+        );
+    }
+}
+
 fn judge(path: &str) {
     let sys = paraphrase();
     let samples = read(path);
@@ -593,6 +715,8 @@ fn main() {
         Some("data") => data(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("report") => report(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("judge") => judge(&args[2]),
+        Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
+        Some("mdl") => mdl(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("prefix") => prefix(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(10_000)),
         Some("subst") => subst(
             args.get(2).map(String::as_str).unwrap_or("data"),

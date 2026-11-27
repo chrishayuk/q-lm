@@ -1,0 +1,18 @@
+  development: 200 sentences, 1.0620 bits/token
+  deeper, corpus words: 100 sentences, 2.9696 bits/token
+transformer-1000-s1: 832023 parameters; 5467 distributions on one CPU thread
+  full prefix each time: 0.403 ms per next-token distribution
+  with a key-value cache: 0.264 ms per next-token distribution
+  most cached and full probabilities differ: 9.5e-07
+  development: 200 sentences, 1.0339 bits/token
+  deeper, corpus words: 100 sentences, 3.6941 bits/token
+transformer-10000-s1: 832023 parameters; 5467 distributions on one CPU thread
+  full prefix each time: 0.407 ms per next-token distribution
+  with a key-value cache: 0.264 ms per next-token distribution
+  most cached and full probabilities differ: 1.4e-06
+  development: 200 sentences, 1.0278 bits/token
+  deeper, corpus words: 100 sentences, 4.7464 bits/token
+transformer-105138-s1: 832023 parameters; 5467 distributions on one CPU thread
+  full prefix each time: 0.409 ms per next-token distribution
+  with a key-value cache: 0.260 ms per next-token distribution
+  most cached and full probabilities differ: 2.2e-06
