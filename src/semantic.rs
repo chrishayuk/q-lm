@@ -18,6 +18,8 @@ pub enum Rel {
     Continent,
     Lives,
     LivesOn,
+    /// Version 3 only: born(person → city), never the city they live in.
+    Born,
 }
 
 /// One statement: a relation, its subject and object (indices into their
@@ -47,6 +49,8 @@ pub struct World {
     pub held_inverse: BTreeSet<usize>,
     pub held_composition: BTreeSet<usize>,
     pub held_new: BTreeSet<usize>,
+    /// Version 3 only: born[person] = city.
+    pub born: Option<Vec<usize>>,
 }
 
 fn shuffle<T>(v: &mut [T], r: &mut Rng) {
@@ -147,7 +151,24 @@ impl World {
             let new: BTreeSet<usize> = ps.iter().filter(|p| !comp.contains(p)).take(4).copied().collect();
             (comp, new)
         };
-        World { countries, cities, continents, people, capital, continent, lives, held_phrasing, held_inverse, held_composition, held_new }
+        World { countries, cities, continents, people, capital, continent, lives, held_phrasing, held_inverse, held_composition, held_new, born: None }
+    }
+
+    /// Version 3: the version-2 world (same seed, same facts, same holdouts)
+    /// with a birth city for every person: two births per city, never the
+    /// city the person lives in. Drawn after everything else, so nothing of
+    /// version 2 changes.
+    pub fn v3(seed: u64) -> World {
+        let mut w = World::new(seed);
+        let mut r = Rng(seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ 0xB0B0);
+        loop {
+            let mut slots: Vec<usize> = (0..PEOPLE).map(|k| k / 2).collect();
+            shuffle(&mut slots, &mut r);
+            if (0..PEOPLE).all(|p| slots[p] != w.lives[p]) {
+                w.born = Some(slots);
+                return w;
+            }
+        }
     }
 
     /// The country whose capital is `city`.
@@ -172,6 +193,8 @@ impl World {
             (Rel::Lives, 0) => format!("{} lives in {} .", p[s.subject], k[s.object]),
             (Rel::Lives, _) => format!("{} is from {} .", p[s.subject], k[s.object]),
             (Rel::LivesOn, _) => format!("{} lives on {} .", p[s.subject], t[s.object]),
+            (Rel::Born, 0) => format!("{} was born in {} .", p[s.subject], k[s.object]),
+            (Rel::Born, _) => format!("{} is a native of {} .", p[s.subject], k[s.object]),
         }
     }
 
@@ -184,6 +207,7 @@ impl World {
             // A new-entity person keeps only the first lives phrasing.
             Rel::Lives => !(s.phrasing == 1 && self.held_new.contains(&s.subject)),
             Rel::LivesOn => !self.held_composition.contains(&s.subject) && !self.held_new.contains(&s.subject),
+            Rel::Born => true,
         }
     }
 
@@ -198,7 +222,7 @@ impl World {
     /// person's name never shares a text with their continent's name.
     pub fn text(&self, r: &mut Rng) -> Vec<Statement> {
         loop {
-            let kind = r.draw() % 10;
+            let kind = r.draw() % if self.born.is_some() { 12 } else { 10 };
             let c = (r.draw() as usize) % COUNTRIES;
             let p = (r.draw() as usize) % PEOPLE;
             let k = self.capital[c];
@@ -217,6 +241,8 @@ impl World {
                     vec![World::st(Rel::Lives, p, k, r), World::st(Rel::Located, k, c, r), World::st(Rel::Continent, c, self.continent[c], r)]
                 }
                 8 => vec![World::st(Rel::Lives, p, self.lives[p], r), World::st(Rel::LivesOn, p, self.lives_on(p), r)],
+                10 => vec![World::st(Rel::Born, p, self.born.as_ref().unwrap()[p], r)],
+                11 => vec![World::st(Rel::Lives, p, self.lives[p], r), World::st(Rel::Born, p, self.born.as_ref().unwrap()[p], r)],
                 _ => {
                     let k = self.lives[p];
                     vec![World::st(Rel::Lives, p, k, r), World::st(Rel::Located, k, self.country_of(k), r)]
@@ -224,7 +250,7 @@ impl World {
             };
             let people_in: Vec<usize> = text
                 .iter()
-                .filter(|s| matches!(s.rel, Rel::Lives | Rel::LivesOn))
+                .filter(|s| matches!(s.rel, Rel::Lives | Rel::LivesOn | Rel::Born))
                 .map(|s| s.subject)
                 .collect();
             if people_in.iter().any(|q| self.held_new.contains(q)) {

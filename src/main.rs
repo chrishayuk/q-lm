@@ -1024,9 +1024,13 @@ fn negatives(dir: &str) {
 /// language: 20,000 training texts, 2,000 development, 2,000 confirmation,
 /// the held-out statements as deep.txt (and deep-seen.txt, for the
 /// transformer scripts), and the fact tests as tests.tsv.
-fn semantic_data(dir: &str, seed: u64, by_city: bool) {
+fn semantic_data(dir: &str, seed: u64, variant: &str) {
     use q_lm::semantic::{Rel, Statement, World};
-    let w = World::with_holdout(seed, by_city);
+    let w = match variant {
+        "v3" => World::v3(seed),
+        "by-person" => World::with_holdout(seed, false),
+        _ => World::new(seed),
+    };
     fs::create_dir_all(dir).unwrap();
     let mut r = Rng(seed * 1000 + 1);
     let train = w.corpus(20_000, &mut r);
@@ -1070,6 +1074,9 @@ fn semantic_data(dir: &str, seed: u64, by_city: bool) {
     }
     for p in 0..q_lm::semantic::PEOPLE {
         facts += &format!("{} lives {} on {}\n", w.people[p], w.cities[w.lives[p]], w.continents[w.lives_on(p)]);
+        if let Some(b) = &w.born {
+            facts += &format!("{} born {}\n", w.people[p], w.cities[b[p]]);
+        }
     }
     fs::write(format!("{dir}/world.txt"), facts).unwrap();
     let mut by: std::collections::BTreeMap<&str, usize> = Default::default();
@@ -1342,7 +1349,7 @@ fn main() {
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
         Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
-        Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap(), args.get(4).map(String::as_str) != Some("by-person")),
+        Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap(), args.get(4).map(String::as_str).unwrap_or("v2")),
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
