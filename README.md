@@ -80,7 +80,9 @@ relations (the grammar learner fails; transformers transfer phrasings and
 Llama composes, but neither reverses) are
 [docs/results-qlm-semantic-001.md](docs/results-qlm-semantic-001.md). Inside
 the transformers (answer states, and an entity state before the query is
-computed): [docs/results-larql-qlm-sem-001-v2.md](docs/results-larql-qlm-sem-001-v2.md).
+computed): [docs/results-larql-qlm-sem-001-v2.md](docs/results-larql-qlm-sem-001-v2.md);
+how it reaches the answer position (a few attention heads):
+[docs/results-larql-qlm-transport-001.md](docs/results-larql-qlm-transport-001.md).
 
 ## Direction
 
