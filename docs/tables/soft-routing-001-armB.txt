@@ -1,0 +1,17 @@
+data-v3/B-latent-s1-T2 (B, T2; policy NOT accepted by latent.py); F chose temperature 1, prune below 1e-06 (training bits 1.885)
+    arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query
+      A | 0.667 | 0.600 | 0.400 | 0.333 | 12.436 | 1 | 5.8 | 0.13
+      B | 0.733 | 0.600 | 0.467 | 0.333 | 2.569 | 640207 | 4425915.4 | 6673.28
+      C | 0.733 | 0.600 | 0.467 | 0.333 | 6.489 | 501 | 4454.4 | 6.06
+      D | 0.733 | 0.600 | 0.467 | 0.333 | 2.642 | 8 | 245.0 | 0.62
+      E | 0.733 | 0.600 | 0.467 | 0.333 | 2.569 | 1013 | 26426.5 | 37.00
+      F | 0.733 | 0.600 | 0.467 | 0.333 | 2.569 | 401 | 3081.8 | 4.88
+data-v3/B-latent-s2-T2 (B, T2; policy NOT accepted by latent.py); F chose temperature 1, prune below 1e-06 (training bits 1.498)
+    arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query
+      A | 0.733 | 0.667 | 0.467 | 0.467 | 10.260 | 1 | 5.8 | 0.13
+      B | 0.800 | 0.600 | 0.400 | 0.367 | 2.178 | 234987 | 1448331.1 | 2037.33
+      C | 0.800 | 0.600 | 0.467 | 0.400 | 3.517 | 653 | 6701.1 | 9.20
+      D | 0.800 | 0.600 | 0.400 | 0.367 | 2.178 | 8 | 245.0 | 0.62
+      E | 0.800 | 0.600 | 0.400 | 0.367 | 2.178 | 1011 | 26133.0 | 36.60
+      F | 0.800 | 0.600 | 0.400 | 0.367 | 2.178 | 341 | 1953.8 | 3.18
+data-v3/B-latent-s3-T2: arm B exploded (more than 2,000,000 active states in one query)

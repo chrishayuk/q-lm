@@ -1,0 +1,84 @@
+data-v3/confirm/A-deepL-s101-T2 (A, T2): learned 7 relations and their programs in 1.7s; whole model 14424 bytes serialised; 9605 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lies in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lives in hemisphere _ .: DERIVED; best program _ lives on _ . → _ lies in _ . (length 2; fit 1.000, held-back tenth 1.000; 42 candidates); expanded to 4 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 258 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         2 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         3 | 1.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         4 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+         8 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+data-v3/confirm/A-deepL-s102-T2 (A, T2): learned 7 relations and their programs in 1.7s; whole model 14424 bytes serialised; 9584 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lies in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lives in hemisphere _ .: DERIVED; best program _ lives on _ . → _ lies in _ . (length 2; fit 1.000, held-back tenth 1.000; 42 candidates); expanded to 4 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 258 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         2 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         3 | 1.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         4 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+         8 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+data-v3/confirm/A-deepL-s103-T2 (A, T2): learned 7 relations and their programs in 1.7s; whole model 14424 bytes serialised; 9598 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lies in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+    _ lives in hemisphere _ .: DERIVED; best program _ lives on _ . → _ lies in _ . (length 2; fit 1.000, held-back tenth 1.000; 42 candidates); expanded to 4 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 258 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 9330 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         2 | 0.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         3 | 1.000 | 0.000 | 1.000   [executed 48, read directly 24]
+         4 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+         8 | 1.000 | 1.000 | 1.000   [executed 48, read directly 24]
+data-v3/confirm/A-s101-T2 (A, T2): learned 5 relations and their programs in 0.3s; whole model 11542 bytes serialised; 9122 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 84 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000   [executed 24, read directly 24]
+         2 | 0.000 | 1.000   [executed 24, read directly 24]
+         3 | 1.000 | 1.000   [executed 24, read directly 24]
+         4 | 1.000 | 1.000   [executed 24, read directly 24]
+         8 | 1.000 | 1.000   [executed 24, read directly 24]
+data-v3/confirm/A-s102-T2 (A, T2): learned 5 relations and their programs in 0.3s; whole model 11542 bytes serialised; 9122 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 84 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000   [executed 24, read directly 24]
+         2 | 0.000 | 1.000   [executed 24, read directly 24]
+         3 | 1.000 | 1.000   [executed 24, read directly 24]
+         4 | 1.000 | 1.000   [executed 24, read directly 24]
+         8 | 1.000 | 1.000   [executed 24, read directly 24]
+data-v3/confirm/A-s103-T2 (A, T2): learned 5 relations and their programs in 0.3s; whole model 11542 bytes serialised; 9108 with the derived relations' stored answers deleted
+    _ is in _ .: stored; best program _ is a city of _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is a city of _ . / _ is located in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ is from _ . / _ lives in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+    _ lives on _ .: DERIVED; best program _ is from _ . → _ is a city of _ . → _ is in _ . (length 3; fit 1.000, held-back tenth 1.000; 84 candidates); expanded to 3 primitive steps, reproduces 1.000 of its training pairs with them deleted
+    _ was born in _ .: stored; best program _ is in _ . (length 1; fit 0.000, held-back tenth 0.000; 1364 candidates)
+  held-out tests, over the knowledge with derived answers deleted (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000   [executed 24, read directly 24]
+         2 | 0.000 | 1.000   [executed 24, read directly 24]
+         3 | 1.000 | 1.000   [executed 24, read directly 24]
+         4 | 1.000 | 1.000   [executed 24, read directly 24]
+         8 | 1.000 | 1.000   [executed 24, read directly 24]

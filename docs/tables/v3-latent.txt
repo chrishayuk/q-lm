@@ -1,0 +1,282 @@
+data-v3/B-s1-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ is _ .
+  learned in 4.7s
+  _ calls _ .: no policy; 236 training examples with one consistent walk, 27 with several; 705 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 235 training examples with one consistent walk, 30 with several; 698 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 249 training examples with one consistent walk, 41 with several; 728 nodes labelled by computation; held-back tenth 0.010
+  _ points to _ .: no policy; 231 training examples with one consistent walk, 32 with several; 678 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: POLICY; 101 training examples with one consistent walk, 20 with several; 393 nodes labelled by computation; held-back tenth 1.000
+  reported in full: from _ the end is _ . (ACCEPTED)
+    every node's predicted action against its hidden kind's: 1020 of 1020 (1.000)
+    groups formed by computation: STOP ← blue 111, black 99; calls ← red 202; faces ← white 205; holds ← yellow 208; points to ← green 195
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s2-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ is _ .
+  learned in 4.7s
+  _ calls _ .: no policy; 262 training examples with one consistent walk, 38 with several; 734 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 255 training examples with one consistent walk, 29 with several; 742 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 239 training examples with one consistent walk, 45 with several; 702 nodes labelled by computation; held-back tenth 0.010
+  _ points to _ .: no policy; 259 training examples with one consistent walk, 31 with several; 742 nodes labelled by computation; held-back tenth 0.010
+  from _ the end is _ .: POLICY; 99 training examples with one consistent walk, 22 with several; 373 nodes labelled by computation; held-back tenth 1.000
+  reported in full: from _ the end is _ . (ACCEPTED)
+    every node's predicted action against its hidden kind's: 1020 of 1020 (1.000)
+    groups formed by computation: STOP ← white 110, red 100; calls ← green 187; faces ← blue 203; holds ← black 210; points to ← yellow 210
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.467 | 1.000 | 0.000 | 0.000
+         4 | 0.467 | 0.533 | 0.000 | 0.000
+         8 | 0.467 | 0.533 | 0.533 | 0.533
+        32 | 0.467 | 0.533 | 0.533 | 0.533
+data-v3/B-s3-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ is _ .
+  learned in 4.7s
+  _ calls _ .: no policy; 239 training examples with one consistent walk, 35 with several; 717 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 248 training examples with one consistent walk, 42 with several; 710 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 247 training examples with one consistent walk, 35 with several; 695 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 240 training examples with one consistent walk, 26 with several; 697 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: POLICY; 102 training examples with one consistent walk, 19 with several; 388 nodes labelled by computation; held-back tenth 1.000
+  reported in full: from _ the end is _ . (ACCEPTED)
+    every node's predicted action against its hidden kind's: 1020 of 1020 (1.000)
+    groups formed by computation: STOP ← black 111, blue 99; calls ← green 208; faces ← red 187; holds ← yellow 204; points to ← white 211
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-latent-s1-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.6s
+  _ calls _ .: no policy; 236 training examples with one consistent walk, 27 with several; 705 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 235 training examples with one consistent walk, 30 with several; 698 nodes labelled by computation; held-back tenth 0.010
+  _ holds _ .: no policy; 249 training examples with one consistent walk, 41 with several; 728 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 231 training examples with one consistent walk, 32 with several; 678 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: no policy; 101 training examples with one consistent walk, 20 with several; 393 nodes labelled by computation; held-back tenth 0.643
+  reported in full: from _ the end is _ . (NOT accepted)
+    every node's predicted action against its hidden kind's: 894 of 1020 (0.876)
+    groups formed by computation: STOP ← blue 92, black 88, green 9, white 8, yellow 6, red 2; calls ← red 173, white 23, yellow 8, green 3; faces ← white 171, red 8, blue 3, green 2, black 1, yellow 1; holds ← yellow 192, red 14, blue 9, black 6, green 3, white 2; points to ← green 178, blue 7, red 5, black 4, white 1, yellow 1
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.800 | 0.000 | 0.000 | 0.000
+         3 | 0.667 | 0.733 | 0.000 | 0.000
+         4 | 0.667 | 0.600 | 0.000 | 0.000
+         8 | 0.667 | 0.600 | 0.400 | 0.333
+        32 | 0.667 | 0.600 | 0.400 | 0.333
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.667 | 0.000 | 0.000 | 0.000
+         3 | 0.667 | 0.667 | 0.000 | 0.000
+         4 | 0.667 | 0.600 | 0.000 | 0.000
+         8 | 0.667 | 0.600 | 0.267 | 0.233
+        32 | 0.667 | 0.600 | 0.267 | 0.233
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.800 | 0.000 | 0.000 | 0.000
+         3 | 0.667 | 0.733 | 0.000 | 0.000
+         4 | 0.667 | 0.533 | 0.000 | 0.000
+         8 | 0.667 | 0.533 | 0.600 | 0.367
+        32 | 0.667 | 0.533 | 0.600 | 0.367
+data-v3/B-latent-s2-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.6s
+  _ calls _ .: no policy; 262 training examples with one consistent walk, 38 with several; 734 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 255 training examples with one consistent walk, 29 with several; 742 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 239 training examples with one consistent walk, 45 with several; 702 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 259 training examples with one consistent walk, 31 with several; 742 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: no policy; 99 training examples with one consistent walk, 22 with several; 373 nodes labelled by computation; held-back tenth 0.500
+  reported in full: from _ the end is _ . (NOT accepted)
+    every node's predicted action against its hidden kind's: 924 of 1020 (0.906)
+    groups formed by computation: STOP ← white 98, red 87, yellow 8, green 6, blue 5, black 4; calls ← green 174, black 9, white 6, yellow 4, red 1; faces ← blue 188, red 7, yellow 4; holds ← black 185, green 6, red 5, yellow 2, white 1; points to ← yellow 192, black 12, blue 10, white 5, green 1
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.867 | 0.000 | 0.000 | 0.000
+         3 | 0.733 | 0.667 | 0.000 | 0.000
+         4 | 0.733 | 0.667 | 0.000 | 0.000
+         8 | 0.733 | 0.667 | 0.467 | 0.467
+        32 | 0.733 | 0.667 | 0.467 | 0.467
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.867 | 0.000 | 0.000 | 0.000
+         3 | 0.667 | 0.600 | 0.000 | 0.000
+         4 | 0.667 | 0.600 | 0.000 | 0.000
+         8 | 0.667 | 0.600 | 0.333 | 0.400
+        32 | 0.667 | 0.600 | 0.400 | 0.400
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.933 | 0.000 | 0.000 | 0.000
+         3 | 0.667 | 0.600 | 0.000 | 0.000
+         4 | 0.667 | 0.600 | 0.000 | 0.000
+         8 | 0.667 | 0.600 | 0.467 | 0.467
+        32 | 0.667 | 0.600 | 0.467 | 0.467
+data-v3/B-latent-s3-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.7s
+  _ calls _ .: no policy; 239 training examples with one consistent walk, 35 with several; 717 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 248 training examples with one consistent walk, 42 with several; 710 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 247 training examples with one consistent walk, 35 with several; 695 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 240 training examples with one consistent walk, 26 with several; 697 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: no policy; 102 training examples with one consistent walk, 19 with several; 388 nodes labelled by computation; held-back tenth 0.357
+  reported in full: from _ the end is _ . (NOT accepted)
+    every node's predicted action against its hidden kind's: 856 of 1020 (0.839)
+    groups formed by computation: STOP ← black 94, blue 90, green 19, red 6, yellow 5, white 5; calls ← green 171, red 4, black 3, blue 2, white 1, yellow 1; faces ← red 108, white 6, green 2, black 1; holds ← yellow 194, red 18, green 12, blue 6, black 2; points to ← white 199, red 51, black 11, green 4, yellow 4, blue 1
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.667 | 0.000 | 0.000 | 0.000
+         3 | 0.600 | 0.533 | 0.000 | 0.000
+         4 | 0.600 | 0.333 | 0.000 | 0.000
+         8 | 0.600 | 0.333 | 0.333 | 0.233
+        32 | 0.600 | 0.333 | 0.333 | 0.233
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.533 | 0.000 | 0.000 | 0.000
+         3 | 0.533 | 0.400 | 0.000 | 0.000
+         4 | 0.533 | 0.333 | 0.000 | 0.000
+         8 | 0.533 | 0.333 | 0.200 | 0.167
+        32 | 0.533 | 0.333 | 0.200 | 0.167
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.667 | 0.000 | 0.000 | 0.000
+         3 | 0.533 | 0.600 | 0.000 | 0.000
+         4 | 0.533 | 0.400 | 0.000 | 0.000
+         8 | 0.533 | 0.400 | 0.400 | 0.233
+        32 | 0.533 | 0.400 | 0.400 | 0.233
+data-v3/B-latentclean-s1-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.6s
+  _ calls _ .: no policy; 236 training examples with one consistent walk, 27 with several; 705 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 235 training examples with one consistent walk, 30 with several; 698 nodes labelled by computation; held-back tenth 0.010
+  _ holds _ .: no policy; 249 training examples with one consistent walk, 41 with several; 728 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 231 training examples with one consistent walk, 32 with several; 678 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: POLICY; 101 training examples with one consistent walk, 20 with several; 393 nodes labelled by computation; held-back tenth 1.000
+  reported in full: from _ the end is _ . (ACCEPTED)
+    every node's predicted action against its hidden kind's: 1016 of 1020 (0.996)
+    groups formed by computation: STOP ← blue 111, black 98, white 1; calls ← red 201, black 1, yellow 1; faces ← white 204; holds ← yellow 207, red 1; points to ← green 195
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 0.933 | 0.000 | 0.000
+         8 | 1.000 | 0.933 | 1.000 | 0.933
+        32 | 1.000 | 0.933 | 1.000 | 0.933
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.933 | 0.000 | 0.000 | 0.000
+         3 | 0.933 | 1.000 | 0.000 | 0.000
+         4 | 0.933 | 1.000 | 0.000 | 0.000
+         8 | 0.933 | 1.000 | 1.000 | 0.967
+        32 | 0.933 | 1.000 | 1.000 | 0.967
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 0.933 | 0.000 | 0.000
+         8 | 1.000 | 0.933 | 1.000 | 0.967
+        32 | 1.000 | 0.933 | 1.000 | 0.967
+data-v3/B-latentclean-s2-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.6s
+  _ calls _ .: no policy; 262 training examples with one consistent walk, 38 with several; 734 nodes labelled by computation; held-back tenth 0.010
+  _ faces _ .: no policy; 255 training examples with one consistent walk, 29 with several; 742 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 239 training examples with one consistent walk, 45 with several; 702 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 259 training examples with one consistent walk, 31 with several; 742 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: POLICY; 99 training examples with one consistent walk, 22 with several; 373 nodes labelled by computation; held-back tenth 1.000
+  reported in full: from _ the end is _ . (ACCEPTED)
+    every node's predicted action against its hidden kind's: 1006 of 1020 (0.986)
+    groups formed by computation: STOP ← white 107, red 98, black 2, green 1; calls ← green 185, white 1; faces ← blue 203, yellow 1; holds ← black 204, red 2, green 1; points to ← yellow 209, black 4, white 2
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.867 | 1.000 | 0.000 | 0.000
+         4 | 0.867 | 1.000 | 0.000 | 0.000
+         8 | 0.867 | 1.000 | 1.000 | 0.767
+        32 | 0.867 | 1.000 | 1.000 | 0.767
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 0.900
+        32 | 1.000 | 1.000 | 1.000 | 0.900
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.867 | 1.000 | 0.000 | 0.000
+         4 | 0.867 | 1.000 | 0.000 | 0.000
+         8 | 0.867 | 1.000 | 0.933 | 0.900
+        32 | 0.867 | 1.000 | 0.933 | 0.900
+data-v3/B-latentclean-s3-T2 (B, T2): links _ calls _ ., _ faces _ ., _ holds _ ., _ points to _ ., from _ the end is _ .; attributes _ has a _ .
+  learned in 5.6s
+  _ calls _ .: no policy; 239 training examples with one consistent walk, 35 with several; 717 nodes labelled by computation; held-back tenth 0.000
+  _ faces _ .: no policy; 248 training examples with one consistent walk, 42 with several; 710 nodes labelled by computation; held-back tenth 0.000
+  _ holds _ .: no policy; 247 training examples with one consistent walk, 35 with several; 695 nodes labelled by computation; held-back tenth 0.000
+  _ points to _ .: no policy; 240 training examples with one consistent walk, 26 with several; 697 nodes labelled by computation; held-back tenth 0.000
+  from _ the end is _ .: no policy; 102 training examples with one consistent walk, 19 with several; 388 nodes labelled by computation; held-back tenth 0.857
+  reported in full: from _ the end is _ . (NOT accepted)
+    every node's predicted action against its hidden kind's: 1000 of 1020 (0.980)
+    groups formed by computation: STOP ← black 110, blue 99, green 1, red 1; calls ← green 206, red 2; faces ← red 170; holds ← yellow 204, green 1, red 1; points to ← white 211, red 13, black 1
+  held-out tests, computation-formed condition (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.933 | 0.000 | 0.000 | 0.000
+         3 | 0.933 | 0.867 | 0.000 | 0.000
+         4 | 0.933 | 0.867 | 0.000 | 0.000
+         8 | 0.933 | 0.867 | 0.933 | 0.833
+        32 | 0.933 | 0.867 | 0.933 | 0.833
+  held-out tests, CONTROL distributional clusters (k-means, k = 6, 10 restarts) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 0.933 | 0.000 | 0.000
+         4 | 1.000 | 0.933 | 0.000 | 0.000
+         8 | 1.000 | 0.933 | 0.800 | 0.667
+        32 | 1.000 | 0.933 | 0.800 | 0.667
+  held-out tests, REFERENCE Bayes posterior over actions (true signatures; scoring only) (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.933 | 0.000 | 0.000 | 0.000
+         3 | 0.933 | 0.933 | 0.000 | 0.000
+         4 | 0.933 | 0.933 | 0.000 | 0.000
+         8 | 0.933 | 0.933 | 0.933 | 0.833
+        32 | 0.933 | 0.933 | 0.933 | 0.833

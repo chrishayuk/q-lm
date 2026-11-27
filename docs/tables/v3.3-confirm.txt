@@ -1,0 +1,72 @@
+data-v3/confirm/B-s101-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 117.3s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ holds _ ., green→_ points to _ ., red→_ faces _ ., white→_ points to _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ holds _ ., green→_ calls _ ., red→from _ the end is _ ., white→_ holds _ ., yellow→_ calls _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ calls _ ., green→_ calls _ ., red→from _ the end is _ ., white→_ faces _ ., yellow→_ faces _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→from _ the end is _ ., green→_ calls _ ., red→_ holds _ ., white→_ calls _ ., yellow→_ holds _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→STOP, blue→STOP, green→_ faces _ ., red→_ points to _ ., white→_ holds _ ., yellow→_ calls _ .; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/confirm/B-s102-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 120.3s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ faces _ ., green→_ points to _ ., red→_ points to _ ., white→_ holds _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→from _ the end is _ ., blue→_ holds _ ., green→_ points to _ ., red→_ calls _ ., white→_ holds _ ., yellow→_ calls _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→from _ the end is _ ., blue→_ faces _ ., green→_ calls _ ., red→_ points to _ ., white→_ calls _ ., yellow→_ points to _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→from _ the end is _ ., green→_ calls _ ., red→_ calls _ ., white→_ holds _ ., yellow→_ holds _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→STOP, blue→STOP, green→_ calls _ ., red→_ faces _ ., white→_ points to _ ., yellow→_ holds _ .; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/confirm/B-s103-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 118.2s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ points to _ ., blue→STOP, green→_ faces _ ., red→_ faces _ ., white→_ faces _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ calls _ ., green→_ points to _ ., red→_ calls _ ., white→_ points to _ ., yellow→from _ the end is _ .; fit 0.004, held-back tenth 0.000; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ faces _ ., green→_ faces _ ., red→_ calls _ ., white→_ faces _ ., yellow→_ calls _ .; fit 0.005, held-back tenth 0.010; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ calls _ ., green→_ holds _ ., red→_ calls _ ., white→_ faces _ ., yellow→_ calls _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→_ calls _ ., blue→_ points to _ ., green→_ holds _ ., red→_ faces _ ., white→STOP, yellow→STOP; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.067 | 0.000 | 0.000 | 0.000

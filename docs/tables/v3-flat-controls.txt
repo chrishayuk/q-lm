@@ -1,0 +1,81 @@
+data-v3/A-deep-s1-T2: budget 316 entries (v3's knowledge), composite keys hold 315; weights 0.99 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 2.9e-15)
+data-v3/A-deep-s2-T2: budget 316 entries (v3's knowledge), composite keys hold 315; weights 0.99 0.01 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 4.9e-15)
+data-v3/A-deep-s3-T2: budget 316 entries (v3's knowledge), composite keys hold 315; weights 0.99 0.01 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.000 | distractor d1 1.000 (gate worst |sum - 1| 3.1e-15)
+data-v3/A-deepL-s1-T2: budget 388 entries (v3's knowledge), composite keys hold 385; weights 0.99 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 1.1e-16)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 5.9e-15)
+data-v3/A-deepL-s2-T2: budget 388 entries (v3's knowledge), composite keys hold 386; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 1.2e-15)
+data-v3/A-deepL-s3-T2: budget 388 entries (v3's knowledge), composite keys hold 387; weights 0.99 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 1.1e-16)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 2.0e-15)
+data-v3/A-s1-T2: budget 312 entries (v3's knowledge), composite keys hold 311; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 1.1e-16)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 4.7e-15)
+data-v3/A-s2-T2: budget 312 entries (v3's knowledge), composite keys hold 310; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 2.4e-15)
+data-v3/A-s3-T2: budget 312 entries (v3's knowledge), composite keys hold 311; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 2.7e-15)
+data-v3/B-latent-s1-T2: budget 5235 entries (v3's knowledge), composite keys hold 5233; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 1.6e-15)
+data-v3/B-latent-s2-T2: budget 5235 entries (v3's knowledge), composite keys hold 5234; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 5.6e-15)
+data-v3/B-latent-s3-T2: budget 5235 entries (v3's knowledge), composite keys hold 5232; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 2.7e-15)
+data-v3/B-latentclean-s1-T2: budget 5235 entries (v3's knowledge), composite keys hold 5232; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 7.2e-15)
+data-v3/B-latentclean-s2-T2: budget 5235 entries (v3's knowledge), composite keys hold 5233; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 4.1e-15)
+data-v3/B-latentclean-s3-T2: budget 5235 entries (v3's knowledge), composite keys hold 5231; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 6.4e-15)
+data-v3/B-s1-T2: budget 5235 entries (v3's knowledge), composite keys hold 5230; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 2.4e-15)
+data-v3/B-s2-T2: budget 5235 entries (v3's knowledge), composite keys hold 5230; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 4.4e-16)
+data-v3/B-s3-T2: budget 5235 entries (v3's knowledge), composite keys hold 5231; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 8.1e-15)
+data-v3/confirm/A-deepL-s101-T2: budget 388 entries (v3's knowledge), composite keys hold 387; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 6.4e-15)
+data-v3/confirm/A-deepL-s102-T2: budget 388 entries (v3's knowledge), composite keys hold 387; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 2.8e-15)
+data-v3/confirm/A-deepL-s103-T2: budget 388 entries (v3's knowledge), composite keys hold 387; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | depth d4 0.500 | distractor d1 1.000 (gate worst |sum - 1| 6.7e-16)
+data-v3/confirm/A-s101-T2: budget 312 entries (v3's knowledge), composite keys hold 312; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 5.8e-15)
+data-v3/confirm/A-s102-T2: budget 312 entries (v3's knowledge), composite keys hold 310; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 3.3e-15)
+data-v3/confirm/A-s103-T2: budget 312 entries (v3's knowledge), composite keys hold 312; weights 0.99 0.00 0.00 0.00 0.00
+  NGRAM: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d3 0.250 | distractor d1 1.000 (gate worst |sum - 1| 2.2e-16)
+data-v3/confirm/B-s101-T2: budget 5235 entries (v3's knowledge), composite keys hold 5232; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 5.6e-16)
+data-v3/confirm/B-s102-T2: budget 5235 entries (v3's knowledge), composite keys hold 5231; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 8.9e-16)
+data-v3/confirm/B-s103-T2: budget 5235 entries (v3's knowledge), composite keys hold 5233; weights 1.00 0.00 0.00 0.00 0.00
+  NGRAM: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 0.0e+00)
+  MATCHED: compose d2 0.000 | compose d3 0.000 | compose d5 0.000 | depth d7 0.000 (gate worst |sum - 1| 4.9e-15)

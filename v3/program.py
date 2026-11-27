@@ -55,6 +55,24 @@ def best_prog(rt, target, rels, pairs):
     return prog, best[1], sel_acc, tried
 
 
+def accept(found):
+    """found: relation -> program (a sequence of relations). A program is rejected if
+    its definition reaches itself through other programs (a cycle), or if it uses a
+    rejected program. Returns (accepted, rejected)."""
+    def reach(g):
+        seen, todo = set(), [r for r in found[g] if r in found]
+        while todo:
+            r = todo.pop()
+            if r not in seen:
+                seen.add(r)
+                todo += [x for x in found[r] if x in found]
+        return seen
+    closure = {g: reach(g) for g in found}
+    cyclic = {g for g in found if g in closure[g]}
+    rejected = {g for g in found if g in cyclic or closure[g] & cyclic}
+    return {g: p for g, p in found.items() if g not in rejected}, rejected
+
+
 def wording(m, g):
     fs = sorted(f for f, h in m["frames"].items() if h == g)
     return " / ".join(" ".join(f) for f in fs)
@@ -79,11 +97,8 @@ def main(d):
             found[g] = prog
         lines.append([g, prog, f"(length {len(prog)}; fit {fit:.3f}, held-back tenth {sel:.3f}; {tried} candidates)"])
 
-    # Safeguard 1, cycles: a program whose expansion reaches its own relation is rejected, explicitly.
-    def reaches(g, target, seen=()):
-        return any(r == target or (r in found and r not in seen and reaches(r, target, seen + (r,))) for r in found.get(g, ()))
-    cyclic = {g for g in found if reaches(g, g)}
-    programs = {g: p for g, p in found.items() if g not in cyclic}
+    # Safeguard 1, cycles: rejected explicitly, with everything that depends on them.
+    programs, cyclic = accept(found)
 
     def expand(g):
         """A derived relation's program in primitive relations. Passes count primitive reads."""
@@ -106,7 +121,7 @@ def main(d):
     programs = {g: p for g, p in programs.items() if verified[g] >= ACCEPT}
     for row in lines:
         g = row[0]
-        tag = "DERIVED" if g in programs else ("rejected: cycle" if g in cyclic else
+        tag = "DERIVED" if g in programs else ("rejected: in or using a cycle" if g in cyclic else
               (f"rejected: expanded program reproduces {verified[g]:.3f}" if g in verified else "stored"))
         exp = f"; expanded to {len(expand(g))} primitive steps, reproduces {verified[g]:.3f} of its training pairs with them deleted" if g in programs else ""
         row[:] = [f"    {wording(m, g)}: {tag}; best program " + " → ".join(wording(m, r).split(" / ")[0] for r in row[1]) + f" {row[2]}{exp}"]

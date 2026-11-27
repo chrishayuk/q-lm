@@ -81,7 +81,11 @@ KINDS = ["red", "blue", "green", "yellow", "black", "white"]
 RELS = ["points to", "faces", "holds", "calls"]
 
 
-def task_b(rng):
+PROPS = ["bell", "door", "lamp", "flag", "well", "gate", "bench", "tower", "clock", "stair", "arch", "pool"]
+P_SIG, P_NOISE = float(os.environ.get("P_SIG", 0.75)), float(os.environ.get("P_NOISE", 0.05))
+
+
+def task_b(rng, latent=False):
     used = set()
     kinds, rels = KINDS[:], RELS[:]
     rng.shuffle(kinds); rng.shuffle(rels)  # the mapping differs for every world
@@ -107,20 +111,46 @@ def task_b(rng):
     held = set()
     for L in (2, 3, 5):
         held.update(p[0] for p in rng.sample(paths[L], 15))
-    facts = [("is", v, kind[v]) for v in allnodes] + [(r, v, o) for v in allnodes for r, o in edges[v].items()]
+    if latent:  # the kind is never stated: each kind has a signature of 3 properties, shown noisily
+        sigs = {}
+        for kd in KINDS:
+            while True:
+                sig = frozenset(rng.sample(PROPS, 3))
+                if sig not in sigs.values():
+                    break
+            sigs[kd] = sig
+        props = {}
+        for v in allnodes:
+            ps = [p for p in PROPS if rng.random() < (P_SIG if p in sigs[kind[v]] else P_NOISE)]
+            props[v] = ps or [rng.choice(sorted(sigs[kind[v]]))]
+        facts = [("has", v, p) for v in allnodes for p in props[v]] + [(r, v, o) for v in allnodes for r, o in edges[v].items()]
+    else:
+        facts = [("is", v, kind[v]) for v in allnodes] + [(r, v, o) for v in allnodes for r, o in edges[v].items()]
     end = {p[0]: (p[-1], L) for L, ps in paths.items() for p in ps}
+    if os.environ.get("LENGTH_FACT") == "1":  # QLM-STATE-001: every start's walk length, held-out starts included
+        word = {2: "two", 3: "three", 5: "five", 7: "seven"}
+        facts += [("takes", s_, word[L]) for s_, (e_, L) in end.items()]
     comp_text = [f"from {s} the end is {e} ." for s, (e, L) in end.items() if s not in held and L != 7]
     tests = [("B", "compose", f"from {s} the end is", e, L) for s, (e, L) in sorted(end.items()) if s in held]
     tests += [("B", "depth", f"from {s} the end is", e, L) for s, (e, L) in sorted(end.items()) if L == 7]
     world = {"task": "B", "rule": rule, "terminal": terminal, "kind": kind, "edges": edges, "held": sorted(held),
              "types": {"node": allnodes, "kind": KINDS}, "phrasings": {r: ["{} " + r + " {} ."] for r in ["is"] + RELS}}
+    if os.environ.get("LENGTH_FACT") == "1":
+        world["phrasings"]["takes"] = ["the walk from {} takes {} steps ."]
+        world["lengths"] = {s_: L for s_, (e_, L) in end.items()}
+    if latent:
+        world["phrasings"] = {"has": ["{} has a {} ."]} | {r: ["{} " + r + " {} ."] for r in RELS} | (
+            {"takes": world["phrasings"]["takes"]} if "takes" in world["phrasings"] else {})
+        world["signatures"] = {kd: sorted(sg) for kd, sg in sigs.items()}
+        world["noise"] = [P_SIG, P_NOISE]
+        world["types"] = {"node": allnodes}
     return facts, comp_text, tests, world
 
 
 def main():
     out, task, seed, regime = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     rng = random.Random(seed)
-    facts, comp, tests, world = task_b(rng) if task == "B" else task_a(rng, {"A": False, "A-deep": True, "A-deepL": "learn"}[task])
+    facts, comp, tests, world = task_b(rng, task == "B-latent") if task.startswith("B") else task_a(rng, {"A": False, "A-deep": True, "A-deepL": "learn"}[task])
     world["regime"] = regime
     say = lambda f: rng.choice(world["phrasings"][f[0]]).format(f[1], f[2])
     text = [say(f) for f in facts for _ in range(REPEAT)] + (comp * REPEAT if regime == "T2" else [])

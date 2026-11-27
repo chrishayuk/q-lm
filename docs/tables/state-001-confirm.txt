@@ -1,0 +1,21 @@
+data-v3/confirm/B-latentlen-s201-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.892, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.667 | 0.467 | 0.333 | 0.167 | 14.929 | 1 | 5.1 | 0.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.800 | 0.467 | 0.333 | 0.100 | 3.623 | 1011 | 26838.5 | 48.89 | completed 0.9999, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0001
+           S | 0.933 | 0.800 | 0.867 | 0.100 | 2.474 | 1011 | 10924.3 | 17.00 | completed 0.6126, rejected 0.3874, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.933 | 0.800 | 0.867 | 0.100 | 2.570 | 8 | 112.2 | 0.38 | completed 0.5946, rejected 0.3833, dead end 0.0000, pruned 0.0221, unfinished 0.0000
+  S-shuffled | 0.467 | 0.400 | 0.333 | 0.067 | 10.165 | 1011 | 10926.3 | 16.36 | completed 0.5227, rejected 0.4772, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/confirm/B-latentlen-s202-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.895, coverage 1.000); meanings five→4, three→3, two→2; 2 of 4 right
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.800 | 0.600 | 0.267 | 0.367 | 12.130 | 1 | 5.1 | 0.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.867 | 0.600 | 0.200 | 0.367 | 2.981 | 1012 | 26786.8 | 47.01 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.933 | 0.800 | 0.000 | 0.367 | 6.571 | 1012 | 10806.0 | 17.00 | completed 0.6421, rejected 0.3579, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.933 | 0.800 | 0.000 | 0.367 | 7.444 | 8 | 110.6 | 0.42 | completed 0.6188, rejected 0.3541, dead end 0.0000, pruned 0.0272, unfinished 0.0000
+  S-shuffled | 0.467 | 0.267 | 0.067 | 0.267 | 11.813 | 1012 | 10809.1 | 18.32 | completed 0.5502, rejected 0.4498, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/confirm/B-latentlen-s203-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.885, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.600 | 0.800 | 0.400 | 0.300 | 12.130 | 1 | 5.2 | 0.24 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.733 | 0.867 | 0.467 | 0.367 | 2.416 | 1013 | 26322.9 | 48.87 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.867 | 0.867 | 0.867 | 0.367 | 1.636 | 1013 | 10779.5 | 16.63 | completed 0.7165, rejected 0.2835, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.867 | 0.867 | 0.867 | 0.367 | 1.751 | 8 | 112.2 | 0.38 | completed 0.6959, rejected 0.2778, dead end 0.0000, pruned 0.0263, unfinished 0.0000
+  S-shuffled | 0.467 | 0.200 | 0.467 | 0.300 | 11.785 | 1013 | 10734.5 | 15.98 | completed 0.4844, rejected 0.5156, dead end 0.0000, pruned 0.0000, unfinished 0.0000
