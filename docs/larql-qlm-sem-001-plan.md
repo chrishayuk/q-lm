@@ -138,3 +138,41 @@ the last layer shows nothing about relations.
 - **A fact state, not an answer state:** the same-fact similarity exceeds
   the same-answer, different-relation similarity by at least 0.1 at the
   layer where measure 1 peaks.
+
+## Second amendment before measurement: relation, wording, answer type and magnitude
+
+The relation subspace above is fitted from capital against continent
+prompts. That difference mixes four things:
+- the wording;
+- the type of the answer (a city against a continent);
+- the answer itself;
+- the relation.
+
+Three controls are added.
+
+1. **A relation that returns the same type.** A version-3 world adds
+   `born(person → city)`, phrased `P was born in K .` and `P is a native
+   of K .`.
+   - Every person is born in a city other than the one they live in, two
+     births per city, assigned by the world seed.
+   - Version 3 is trained exactly as version 2: the same three worlds, the
+     same models and seeds, everything else unchanged.
+   - For a person P, the relation-only swap from `P was born in` into
+     `P lives in` (or back) must change which city comes out, the birth
+     city against the home city, with the answer type unchanged.
+   - Counts when the target relation's city becomes the most probable city,
+     ahead of the source relation's, for at least half the held-out people
+     (fitted on three quarters, tested on the rest).
+2. **Directions fitted on one wording, tested on another.**
+   - Relation directions are fitted on wording 2 (`the capital of C is`
+     against `C lies on`; `P is a native of` against `P is from`).
+   - The swaps are measured on wording 1 (`C has capital` against `C is
+     in`; `P was born in` against `P lives in`).
+   - A direction that carries only wording fails this.
+3. **Controls matched in magnitude.** Every random-subspace control is
+   rescaled so that its perturbation of the residual stream has the same
+   norm, position by position, as the intervention it controls. Matching
+   dimension alone is not enough.
+
+Version 2 is measured as planned. The same-type relation test is
+reported from version 3.
