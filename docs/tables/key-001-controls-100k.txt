@@ -1,0 +1,6 @@
+n=100000 arm=A split=select | all 4.0516 0-1 5.1476 2-4 3.9060 5+ 3.8305 | keys: none | stored bindings 0 
+n=100000 arm=A buckets split=select | all 4.0497 0-1 5.1303 2-4 3.9074 5+ 3.8312 | keys: none | stored bindings 0 
+n=100000 arm=V split=select | all 4.0335 0-1 5.1593 2-4 3.9117 5+ 3.7959 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 7237288 
+n=100000 arm=V buckets split=select | all 4.0236 0-1 5.1317 2-4 3.8936 5+ 3.7936 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 7237288 
+n=100000 arm=R split=select | all 4.0445 0-1 5.1515 2-4 3.8987 5+ 3.8207 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 9688691 
+n=100000 arm=R buckets split=select | all 4.0431 0-1 5.1317 2-4 3.9057 5+ 3.8208 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 9688691 

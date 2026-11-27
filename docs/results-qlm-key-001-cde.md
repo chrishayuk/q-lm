@@ -92,3 +92,43 @@ transformer's 3.935 and the full one's 3.760.
   together. The next step in this direction is keys built from a
   retrieved result (arm G): a first lookup's answer becomes part of the
   second key. That is the plan's successive computation.
+
+## Addendum: the storage control, and weights that depend on position
+
+Table: [tables/key-001-controls-100k.txt](tables/key-001-controls-100k.txt).
+The comparison split, 100,000 sentences.
+
+**The controls:**
+- **Arm R:** E's 18 templates, but each key's earlier item is at a
+  pseudo-random distance (2 to t), fixed by the sentence and the position.
+  So it has the same templates and more storage (9.7 M bindings against
+  7.2 M), but no consistent addressing.
+- **Buckets:** the mixture weights fitted separately for each position
+  0 to 5, and 6+. That is a simple form of choosing, per context, which
+  component to trust. Applied to every arm alike.
+
+| model | stored bindings | all | 2–4 | 5+ |
+|---|---:|---:|---:|---:|
+| v2 alone | 0 | 4.0516 | 3.9060 | 3.8305 |
+| v2 alone, weights by position | 0 | 4.0497 | 3.9074 | 3.8312 |
+| E's keys | 7.2 M | 4.0335 | 3.9117 | 3.7959 |
+| E's keys, weights by position | 7.2 M | **4.0236** | **3.8936** | **3.7936** |
+| random-distance keys (R) | 9.7 M | 4.0445 | 3.8987 | 3.8207 |
+| R, weights by position | 9.7 M | 4.0431 | 3.9057 | 3.8208 |
+
+**Addressing, not storage.**
+- At positions 5+, E's keys beat random-distance keys by 0.025 bits
+  (3.7959 against 3.8207), with a quarter less storage.
+- Against this storage control, the plan's 0.02 margin is met.
+- Against C and D (all-word and all-node keys), it is not (0.011 and
+  0.015, above). So consistent addressing matters a great deal; E's
+  selection among consistent addresses adds a little more.
+
+**Weights by position help only once there is something to choose
+between:**
+- 0.002 for v2 alone;
+- 0.010 with the keys, mostly at positions 0 to 4: 2–4 improve by 0.018.
+
+**Where it stands:** 4.024 overall.
+- The 5-gram's window, in a transformer: 3.935, 0.089 better.
+- The full-context transformer: 3.760, 0.264 better.

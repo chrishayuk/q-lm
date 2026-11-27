@@ -46,6 +46,8 @@ ap.add_argument("n", type=int)
 ap.add_argument("--arm", default="E")
 ap.add_argument("--split", default="select", choices=["select", "confirm"])
 ap.add_argument("--lam", type=float, default=1.0)
+ap.add_argument("--buckets", action="store_true", help="mixture weights per position bucket")
+ap.add_argument("--keys", default="", help="for arm R or V: comma-separated templates, e.g. w2,w3,c2")
 a = ap.parse_args()
 t0 = time.time()
 core.setup(a.dir, a.n)
@@ -60,10 +62,18 @@ D_ = 0.75
 templates = [(k, d) for k in ("w", "c", "cw") for d in range(2, 9)]
 
 
+RANDOM = False  # arm R: the earlier item is at a random distance, not d
+
+
 def key_of(tmpl, ids, t):
     """The key for predicting ids[t] (ids starts with the sentence's words);
     None if the history is too short."""
     k, d = tmpl
+    if RANDOM and t >= 2:
+        # A pseudo-random distance in 2..t, fixed by the sentence and the
+        # position: the same storage, no consistent addressing.
+        h = (hash(tuple(ids[:t])) ^ (d * 0x9E3779B1)) & 0xFFFFFFFF
+        d = 2 + h % (t - 1)
     if t - d < 0 or t - 1 < 0:
         return None
     v, x = ids[t - 1], ids[t - d]
@@ -121,7 +131,13 @@ class Model:
 
 
 enc = core.enc
-if a.arm == "C":
+if a.arm == "A":  # v2 alone (5-gram + 4 class models)
+    chosen, util = [], {}
+elif a.arm in ("R", "V"):
+    chosen = [("cw" if x.startswith("cw") else x[0], int("".join(ch for ch in x if ch.isdigit()))) for x in a.keys.split(",")]
+    RANDOM = a.arm == "R"
+    util = {}
+elif a.arm == "C":
     chosen = [t for t in templates if t[0] == "w"]
     util = {}
 elif a.arm == "D":
@@ -150,25 +166,29 @@ fit = range(0, 1000)
 evalr = range(1000, 3000) if a.split == "select" else range(3000, 7000)
 comps = {i: [kn[i]] + cls[i] + [m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
 J = len(comps[0])
-w = np.full(J, 1.0 / J)
+bucket = (lambda t: min(t, 6)) if a.buckets else (lambda t: 0)
+NB = 7
+W = np.full((NB, J), 1.0 / J)
 for _ in range(40):
-    acc = np.zeros(J)
+    acc = np.zeros((NB, J)) + 1e-9
     for i in fit:
         for t in range(len(comps[i][0])):
-            pv = np.array([c[t] for c in comps[i]]) * w
-            acc += pv / pv.sum()
-    w = acc / acc.sum()
+            b = bucket(t)
+            pv = np.array([c[t] for c in comps[i]]) * W[b]
+            acc[b] += pv / pv.sum()
+    W = acc / acc.sum(1, keepdims=True)
+w = W[0]
 B = {}
 for i in evalr:
     for t in range(len(comps[i][0])):
-        b = -math.log2(sum(w[j] * comps[i][j][t] for j in range(J)))
+        b = -math.log2(sum(W[bucket(t)][j] * comps[i][j][t] for j in range(J)))
         for kk in ("0-1" if t < 2 else "2-4" if t <= 4 else "5+", "all"):
             e = B.setdefault(kk, [0, 0])
             e[0] += b
             e[1] += 1
 res = " ".join(f"{k} {B[k][0] / B[k][1]:.4f}" for k in ("all", "0-1", "2-4", "5+"))
 kept = ", ".join(f"{k}{d}" for k, d in chosen) or "none"
-print(f"n={a.n} arm={a.arm} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} | {time.time() - t0:.0f}s")
+print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} | {time.time() - t0:.0f}s")
 if util:
     for tm in templates:
         g, c, u = util[tm]
