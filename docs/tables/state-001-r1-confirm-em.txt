@@ -1,0 +1,33 @@
+data-v3/confirm/B-latentlen-s301-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.996, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 3 0.01, 5 0.99; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.333 | 0.200 | 0.133 | 0.100 | 19.283 | 1 | 5.0 | 0.21 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.333 | 0.333 | 0.067 | 0.067 | 4.747 | 1015 | 27101.5 | 43.90 | completed 0.9999, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0001
+           S | 0.800 | 0.933 | 0.533 | 0.067 | 3.338 | 1015 | 11040.4 | 16.75 | completed 0.5568, rejected 0.4431, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.800 | 0.867 | 0.533 | 0.067 | 4.990 | 8 | 112.2 | 0.41 | completed 0.5201, rejected 0.4330, dead end 0.0000, pruned 0.0469, unfinished 0.0000
+  S-shuffled | 0.333 | 0.467 | 0.133 | 0.067 | 11.301 | 1015 | 11033.3 | 16.90 | completed 0.4754, rejected 0.5245, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.800 | 0.933 | 0.533 | 0.067 | 3.338 | 1015 | 11040.4 | 16.80 | completed 0.5568, rejected 0.4431, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.800 | 0.933 | 0.533 | 0.067 | 3.342 | 1015 | 11362.4 | 16.56 | completed 0.5567, rejected 0.4433, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.800 | 0.933 | 0.533 | 0.467 | 1.712 | 1006 | 1299.8 | 1.74 | completed 0.1913, rejected 0.8087, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/confirm/B-latentlen-s302-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.998, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 0.99; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.533 | 0.533 | 0.467 | 0.167 | 14.618 | 1 | 5.2 | 0.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.600 | 0.667 | 0.467 | 0.133 | 3.311 | 1012 | 25770.1 | 42.66 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.867 | 1.000 | 0.600 | 0.133 | 2.360 | 1011 | 10557.8 | 22.79 | completed 0.6886, rejected 0.3114, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.867 | 1.000 | 0.600 | 0.133 | 3.684 | 8 | 112.1 | 0.60 | completed 0.6766, rejected 0.3077, dead end 0.0000, pruned 0.0157, unfinished 0.0000
+  S-shuffled | 0.400 | 0.133 | 0.200 | 0.100 | 12.136 | 1011 | 10511.7 | 18.61 | completed 0.5017, rejected 0.4983, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.867 | 1.000 | 0.600 | 0.133 | 2.360 | 1011 | 10557.8 | 16.17 | completed 0.6886, rejected 0.3114, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.867 | 1.000 | 0.600 | 0.133 | 2.360 | 1011 | 10818.0 | 16.42 | completed 0.6881, rejected 0.3119, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.867 | 1.000 | 0.600 | 0.567 | 1.145 | 954 | 1092.2 | 1.59 | completed 0.3836, rejected 0.6164, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/confirm/B-latentlen-s303-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.993, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 2 0.02, 5 0.98; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.733 | 0.533 | 0.200 | 0.433 | 12.441 | 1 | 5.6 | 0.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.800 | 0.533 | 0.200 | 0.367 | 2.581 | 1008 | 25551.9 | 42.92 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.867 | 0.733 | 0.733 | 0.367 | 1.581 | 1008 | 10450.3 | 15.81 | completed 0.6896, rejected 0.3104, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.867 | 0.733 | 0.733 | 0.367 | 1.558 | 8 | 112.2 | 0.36 | completed 0.6772, rejected 0.3081, dead end 0.0000, pruned 0.0146, unfinished 0.0000
+  S-shuffled | 0.467 | 0.267 | 0.133 | 0.267 | 11.463 | 1008 | 10409.8 | 15.56 | completed 0.5101, rejected 0.4899, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.867 | 0.733 | 0.733 | 0.367 | 1.581 | 1008 | 10450.3 | 15.65 | completed 0.6896, rejected 0.3104, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.867 | 0.733 | 0.733 | 0.367 | 1.584 | 1008 | 10692.3 | 16.40 | completed 0.6887, rejected 0.3113, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.867 | 0.733 | 0.733 | 0.900 | 0.542 | 939 | 1020.4 | 1.47 | completed 0.4143, rejected 0.5857, dead end 0.0000, pruned 0.0000, unfinished 0.0000

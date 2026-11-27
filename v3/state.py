@@ -28,8 +28,15 @@ from softroute import CAP, FLOOR_W, execute
 BEAM = 8
 
 
-def execute_s(start, post, kq, length, beam=None, acct=None):
+def execute_s(start, post, kq, length, beam=None, acct=None, dist=None, merge_steps=True):
+    """length: a hard constraint (or None); dist: {length: probability}, a soft one
+    (stopping mass at n steps is weighted by dist[n]). merge_steps False keys the
+    state by entity alone and reads the step count from the global pass index
+    (synchronous passes: every state at pass i has taken i steps)."""
     acct = acct if acct is not None else defaultdict(float)
+    if dist is not None:
+        length = None
+    maxlen = max(dist) if dist else length
     states = {(start, 0): 1.0}
     answer = defaultdict(float)
     max_active, expansions = 1, 0
@@ -40,13 +47,12 @@ def execute_s(start, post, kq, length, beam=None, acct=None):
             for a, pa in post(e).items():
                 wa = w * pa
                 if a is STOP:
-                    if length is None or n == length:
-                        answer[e] += wa
-                        acct["completed"] += wa
-                    else:
-                        acct["rejected"] += wa  # stopped at the wrong length
+                    keep = dist.get(n, 0.0) if dist else (1.0 if length is None or n == length else 0.0)
+                    answer[e] += wa * keep
+                    acct["completed"] += wa * keep
+                    acct["rejected"] += wa * (1 - keep)  # stopped at a wrong (or unlikely) length
                     continue
-                if length is not None and n + 1 > length:
+                if maxlen is not None and n + 1 > maxlen:
                     acct["rejected"] += wa  # walks past the length
                     continue
                 nxt = kq.get((e, a))
@@ -54,7 +60,7 @@ def execute_s(start, post, kq, length, beam=None, acct=None):
                     acct["dead end"] += wa
                     continue
                 for o, x in nxt.items():
-                    new[(o, n + 1)] += wa * x
+                    new[(o, n + 1)] += wa * x  # merge_steps False: every key at this pass has the same n
         before = sum(new.values())
         new = {s: w for s, w in new.items() if w >= FLOOR_W}
         if beam and len(new) > beam:
@@ -85,29 +91,34 @@ def main(d):
     best = None
     for r in ctx["attrs"]:
         co = defaultdict(Counter)
-        for s, L in ctx["walk_len"].items():
+        for s, Ld in ctx["walk_len"].items():
             v = k.get((s, r))
             if v:
-                co[max(v, key=v.get)][L] += 1
+                for L, w in Ld.items():
+                    co[max(v, key=v.get)][L] += w
         n = sum(sum(c.values()) for c in co.values())
         if n == 0:
             continue
-        purity = sum(c.most_common(1)[0][1] for c in co.values()) / n
+        purity = sum(max(c.values()) for c in co.values()) / n
         coverage = n / len(ctx["walk_len"])
         if best is None or purity * coverage > best[0]:
-            best = (purity * coverage, r, {v: c.most_common(1)[0][0] for v, c in co.items()}, purity, coverage)
-    _, rel, meaning, purity, coverage = best
+            best = (purity * coverage, r, {v: max(c, key=c.get) for v, c in co.items()}, purity, coverage, co)
+    _, rel, meaning, purity, coverage, co = best
+    soft = {v: {L: w / sum(c.values()) for L, w in c.items()} for v, c in co.items()}  # P(length | word)
     truth = {"two": 2, "three": 3, "five": 5, "seven": 7}
     right = sum(meaning.get(w) == L for w, L in truth.items())
     name = " ".join(next(f for f, g in m["frames"].items() if g == rel))
-    length_of = lambda s: meaning.get(max(k[(s, rel)], key=k[(s, rel)].get)) if (s, rel) in k else None
+    token_of = lambda s: max(k[(s, rel)], key=k[(s, rel)].get) if (s, rel) in k else None
+    length_of = lambda s: meaning.get(token_of(s))
+    dist_of = lambda s: soft.get(token_of(s))
 
     tests = [(kind, depth, *ctx["read_prompt"](prompt.split()), ans) for _, kind, prompt, ans, depth in ctx["tests"]]
     starts = [t[2] for t in tests]
     shuffled = dict(zip(starts, starts[7:] + starts[:7]))  # each start given another start's value
     print(f"{d} ({world['task']}, {world['regime']}): length constraint learned as '{name}' "
           f"(purity {purity:.3f}, coverage {coverage:.3f}); meanings " + ", ".join(f"{w}→{L}" for w, L in sorted(meaning.items()))
-          + f"; {right} of 4 right")
+          + f"; {right} of 4 right; labels {latent.LABELS}")
+    print("    P(length | word): " + "; ".join(f"{w}: " + ", ".join(f"{L} {p:.2f}" for L, p in sorted(d_.items()) if p >= 0.01) for w, d_ in sorted(soft.items())))
     print("        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome")
     arms = {
         "A": lambda s, acct: execute(s, post, kq, "A", acct=acct),
@@ -115,6 +126,9 @@ def main(d):
         "S": lambda s, acct: execute_s(s, post, kq, length_of(s), acct=acct),
         "S-beam": lambda s, acct: execute_s(s, post, kq, length_of(s), BEAM, acct=acct),
         "S-shuffled": lambda s, acct: execute_s(s, post, kq, length_of(shuffled[s]), acct=acct),
+        "S-global": lambda s, acct: execute_s(s, post, kq, length_of(s), acct=acct, merge_steps=False),
+        "S-soft": lambda s, acct: execute_s(s, post, kq, None, acct=acct, dist=dist_of(s)),
+        "S-oracle": lambda s, acct: execute_s(s, post, kq, world["lengths"][s], acct=acct),  # diagnostic: the true length
     }
     for arm, run in arms.items():
         by, b, mx, ex, acct, t0 = defaultdict(lambda: [0, 0]), 0.0, 0, 0, defaultdict(float), time.time()

@@ -1,0 +1,99 @@
+data-v3/B-latentlen-s1-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.999, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.733 | 0.533 | 0.267 | 0.300 | 13.374 | 1 | 5.6 | 0.24 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.800 | 0.600 | 0.333 | 0.233 | 2.485 | 1008 | 25336.2 | 42.63 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.933 | 0.933 | 0.733 | 0.233 | 1.668 | 1008 | 10347.8 | 16.46 | completed 0.7049, rejected 0.2950, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.933 | 0.933 | 0.733 | 0.233 | 2.058 | 8 | 112.2 | 0.40 | completed 0.6970, rejected 0.2939, dead end 0.0000, pruned 0.0091, unfinished 0.0000
+  S-shuffled | 0.467 | 0.333 | 0.267 | 0.167 | 11.976 | 1008 | 10292.7 | 16.20 | completed 0.5276, rejected 0.4724, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.933 | 0.933 | 0.733 | 0.233 | 1.668 | 1008 | 10347.8 | 16.29 | completed 0.7049, rejected 0.2950, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.933 | 0.933 | 0.733 | 0.233 | 1.670 | 1008 | 10583.4 | 16.14 | completed 0.7047, rejected 0.2953, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.933 | 0.933 | 0.733 | 0.700 | 0.619 | 898 | 979.6 | 1.31 | completed 0.4201, rejected 0.5799, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-latentlen-s2-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.733 | 0.600 | 0.467 | 0.467 | 10.575 | 1 | 5.6 | 0.24 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.800 | 0.667 | 0.467 | 0.500 | 2.154 | 1001 | 23322.1 | 38.32 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.933 | 0.933 | 0.867 | 0.500 | 1.405 | 999 | 9851.9 | 14.61 | completed 0.7550, rejected 0.2450, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.933 | 0.933 | 0.867 | 0.500 | 1.398 | 8 | 112.2 | 0.36 | completed 0.7507, rejected 0.2443, dead end 0.0000, pruned 0.0050, unfinished 0.0000
+  S-shuffled | 0.400 | 0.400 | 0.267 | 0.367 | 11.339 | 997 | 9764.2 | 14.13 | completed 0.5026, rejected 0.4974, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.933 | 0.933 | 0.867 | 0.500 | 1.405 | 999 | 9851.9 | 14.17 | completed 0.7550, rejected 0.2450, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.933 | 0.933 | 0.867 | 0.500 | 1.406 | 999 | 10066.4 | 15.05 | completed 0.7549, rejected 0.2450, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.933 | 0.933 | 0.867 | 0.867 | 0.498 | 876 | 906.1 | 1.29 | completed 0.4912, rejected 0.5088, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-latentlen-s3-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 0.999, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.667 | 0.467 | 0.333 | 0.233 | 14.130 | 1 | 6.3 | 0.23 | completed 0.9867, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0133
+           E | 0.733 | 0.533 | 0.267 | 0.233 | 3.229 | 1012 | 26434.0 | 43.84 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 0.867 | 0.667 | 0.233 | 2.130 | 1011 | 10778.8 | 16.21 | completed 0.6577, rejected 0.3423, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 0.867 | 0.667 | 0.233 | 2.577 | 8 | 112.2 | 0.36 | completed 0.6322, rejected 0.3385, dead end 0.0000, pruned 0.0293, unfinished 0.0000
+  S-shuffled | 0.267 | 0.400 | 0.333 | 0.200 | 11.934 | 1012 | 10774.8 | 15.90 | completed 0.4815, rejected 0.5185, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 0.867 | 0.667 | 0.233 | 2.130 | 1011 | 10778.8 | 15.95 | completed 0.6577, rejected 0.3423, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 0.867 | 0.667 | 0.233 | 2.132 | 1011 | 11070.4 | 16.13 | completed 0.6575, rejected 0.3425, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 0.867 | 0.667 | 0.767 | 0.851 | 970 | 1148.7 | 1.57 | completed 0.3368, rejected 0.6632, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-latentlencl-s1-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 1.000 | 1.000 | 1.000 | 0.967 | 0.311 | 1 | 5.8 | 0.31 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 1.000 | 1.000 | 1.000 | 0.967 | 0.098 | 121 | 416.3 | 1.32 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 1.000 | 1.000 | 0.967 | 0.072 | 121 | 235.1 | 0.62 | completed 0.9838, rejected 0.0162, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 1.000 | 1.000 | 0.967 | 0.072 | 8 | 67.3 | 0.31 | completed 0.9838, rejected 0.0162, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+  S-shuffled | 0.533 | 0.333 | 0.267 | 0.733 | 10.893 | 121 | 212.2 | 0.68 | completed 0.5232, rejected 0.4768, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 1.000 | 1.000 | 0.967 | 0.072 | 121 | 235.1 | 0.68 | completed 0.9838, rejected 0.0162, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 1.000 | 1.000 | 0.967 | 0.072 | 121 | 258.2 | 0.69 | completed 0.9838, rejected 0.0162, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 86 | 85.7 | 0.34 | completed 0.9450, rejected 0.0550, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-latentlencl-s2-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.933 | 1.000 | 1.000 | 0.800 | 2.177 | 1 | 5.9 | 0.25 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.933 | 1.000 | 1.000 | 0.800 | 0.287 | 103 | 461.6 | 1.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 1.000 | 1.000 | 0.800 | 0.239 | 103 | 288.8 | 0.61 | completed 0.9824, rejected 0.0176, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 1.000 | 1.000 | 0.800 | 0.239 | 8 | 71.2 | 0.27 | completed 0.9824, rejected 0.0176, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+  S-shuffled | 0.400 | 0.467 | 0.400 | 0.633 | 10.449 | 103 | 251.0 | 0.53 | completed 0.5606, rejected 0.4394, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 1.000 | 1.000 | 0.800 | 0.239 | 103 | 288.8 | 0.59 | completed 0.9824, rejected 0.0176, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 1.000 | 1.000 | 0.800 | 0.239 | 103 | 314.7 | 0.63 | completed 0.9824, rejected 0.0176, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 1.000 | 1.000 | 1.000 | 0.001 | 82 | 109.3 | 0.29 | completed 0.9091, rejected 0.0909, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-latentlencl-s3-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 0.933 | 0.867 | 0.933 | 0.833 | 2.799 | 1 | 5.7 | 0.25 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 0.933 | 0.867 | 0.933 | 0.833 | 0.402 | 274 | 1128.7 | 2.46 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 0.933 | 1.000 | 1.000 | 0.833 | 0.301 | 218 | 612.7 | 1.11 | completed 0.9558, rejected 0.0442, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 0.933 | 1.000 | 1.000 | 0.833 | 0.301 | 8 | 71.1 | 0.32 | completed 0.9557, rejected 0.0442, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+  S-shuffled | 0.200 | 0.267 | 0.467 | 0.600 | 11.080 | 274 | 595.2 | 1.20 | completed 0.5283, rejected 0.4717, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 0.933 | 1.000 | 1.000 | 0.833 | 0.301 | 218 | 612.7 | 1.17 | completed 0.9558, rejected 0.0442, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 0.933 | 1.000 | 1.000 | 0.833 | 0.301 | 218 | 660.4 | 1.21 | completed 0.9557, rejected 0.0443, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 0.933 | 1.000 | 1.000 | 0.967 | 0.054 | 176 | 181.1 | 0.39 | completed 0.8676, rejected 0.1324, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-len-s1-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1 | 5.8 | 0.24 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 1.000 | 1.000 | 1.000 | 1.000 | 0.024 | 556 | 4347.3 | 8.69 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 556 | 2297.9 | 4.38 | completed 0.9940, rejected 0.0060, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 1.000 | 1.000 | 1.000 | 0.015 | 8 | 82.3 | 0.36 | completed 0.9938, rejected 0.0059, dead end 0.0000, pruned 0.0003, unfinished 0.0000
+  S-shuffled | 0.533 | 0.333 | 0.267 | 0.767 | 10.739 | 556 | 2081.3 | 4.17 | completed 0.5331, rejected 0.4669, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 556 | 2297.9 | 4.38 | completed 0.9940, rejected 0.0060, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 556 | 2434.8 | 5.12 | completed 0.9940, rejected 0.0060, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 377 | 484.7 | 1.06 | completed 0.9836, rejected 0.0164, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-len-s2-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1 | 5.8 | 0.20 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 1.000 | 1.000 | 1.000 | 1.000 | 0.025 | 599 | 4486.2 | 8.25 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 599 | 2392.6 | 4.02 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 8 | 80.7 | 0.29 | completed 0.9936, rejected 0.0061, dead end 0.0000, pruned 0.0003, unfinished 0.0000
+  S-shuffled | 0.400 | 0.467 | 0.400 | 0.767 | 10.269 | 599 | 2190.6 | 3.56 | completed 0.5595, rejected 0.4405, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 599 | 2392.6 | 4.38 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 599 | 2524.2 | 4.45 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 1.000 | 1.000 | 1.000 | 0.001 | 434 | 511.0 | 0.92 | completed 0.9833, rejected 0.0167, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+data-v3/B-len-s3-T2 (B, T2): length constraint learned as 'the walk from _ takes _ steps .' (purity 1.000, coverage 1.000); meanings five→5, three→3, two→2; 3 of 4 right; labels em
+    P(length | word): five: 5 1.00; three: 3 1.00; two: 2 1.00
+        arm | 2 steps | 3 steps | 5 steps | 7 steps | bits for the true answer | max active | expansions/query | ms/query | mean mass by outcome
+           A | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1 | 5.8 | 0.23 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           E | 1.000 | 1.000 | 1.000 | 1.000 | 0.025 | 579 | 4406.5 | 8.62 | completed 1.0000, rejected 0.0000, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+           S | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 579 | 2289.8 | 3.91 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-beam | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 8 | 79.4 | 0.32 | completed 0.9937, rejected 0.0061, dead end 0.0000, pruned 0.0003, unfinished 0.0000
+  S-shuffled | 0.267 | 0.333 | 0.533 | 0.767 | 10.671 | 579 | 2123.5 | 3.56 | completed 0.5327, rejected 0.4673, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-global | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 579 | 2289.8 | 3.54 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+      S-soft | 1.000 | 1.000 | 1.000 | 1.000 | 0.016 | 579 | 2420.4 | 3.81 | completed 0.9939, rejected 0.0061, dead end 0.0000, pruned 0.0000, unfinished 0.0000
+    S-oracle | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 411 | 501.4 | 0.87 | completed 0.9833, rejected 0.0167, dead end 0.0000, pruned 0.0000, unfinished 0.0000

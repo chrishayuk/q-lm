@@ -48,21 +48,26 @@ stopped.
 ## Against the criteria
 
 - **Uncertainty helps (+0.10 at 7 steps): FAILS.** The best soft arm,
-  averaged over the noisy seeds, is −0.033 against A (0, −0.100, 0). The
+  averaged over the noisy seeds, is C (top two), at −0.022 against A
+  (0, −0.067, 0). (Corrected after review: the first version gave −0.033,
+  which is E's.) The
   confirmation on fresh seeds was to be run only for a passing arm, so it
   was not run.
 - **No cost when certain: passes.** No accuracy is lost on the explicit or
   clean worlds.
 - **Merging matters: passes.** E's maximum active states is 1/632 of B's at
   the same accuracy, and B is infeasible on s3.
-- **Calibration: passes.** The true answer costs 2.2 to 3.5 bits under E,
+- **Calibration: passes, in the plan's sense: lower log loss on the true
+  answer.** (Corrected after review: this is better probabilistic
+  prediction. Calibration in the strict sense, whether stated probabilities
+  match observed frequencies, was not measured.) The true answer costs 2.2 to 3.5 bits under E,
   against 10.3 to 15.2 under A. The beam of 8 keeps almost all of that at
   0.64 ms per query.
 
 ## What it says
 
 Keeping a distribution over the next entity makes the model much less
-confidently wrong, but rarely changes which answer it picks. Each
+confidently wrong (lower log loss), but rarely changes which answer it picks. Each
 alternative is weighted only by local evidence, the same evidence that
 made the hard choice. Nothing later in the walk bears on it. Merging
 equivalent states is what makes keeping alternatives affordable:

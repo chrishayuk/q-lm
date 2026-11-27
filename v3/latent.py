@@ -35,6 +35,8 @@ from program import ACCEPT, wording
 
 MAX_WALK = 5
 CAP = 32
+LABELS = __import__("os").environ.get("LABELS", "shortest")  # "shortest" (first version) or "em"
+EM_ROUNDS = 10
 
 
 def top(d):
@@ -75,7 +77,7 @@ def main(d):
         subs = sorted({s for s, _ in pairs[q]})
         sel = set(subs[::10])
         steps = [g for g in links if g != q]
-        labels, unique, ambiguous, walk_len = defaultdict(Counter), 0, 0, {}
+        labels, unique, ambiguous, walk_len, candidates = defaultdict(Counter), 0, 0, {}, []
         for s, o in pairs[q]:
             if s in sel:
                 continue
@@ -95,38 +97,74 @@ def main(d):
                         given = {}
                         if all(given.setdefault(x, a) == a for x, a in path):
                             found.append(path)
+            candidates.append((s, found))
             shortest = [f for f in found if found and len(f) == min(map(len, found))]
             if len(shortest) == 1:  # the shortest consistent walk, if it is the only one of its length
                 unique += 1
-                walk_len[s] = len(shortest[0]) - 1
+                walk_len[s] = {len(shortest[0]) - 1: 1.0}
                 for x, a in shortest[0]:
                     labels[x][a] += 1
             elif shortest:
                 ambiguous += 1
         if not labels:
             continue
-        node_label = {x: c.most_common(1)[0][0] for x, c in labels.items()}
-        acts = sorted(set(node_label.values()), key=str)
-        # Bernoulli naive Bayes over attribute values.
-        n_a = Counter(node_label.values())
-        n_af = defaultdict(Counter)
-        for x, a in node_label.items():
-            for f in feats(x):
-                n_af[a][f] += 1
 
-        def nb_post(e, acts=acts, n_a=n_a, n_af=n_af, n=len(node_label)):
-            """The posterior over actions for entity e (log-space, normalised)."""
-            fe = feats(e)
-            sc = {}
-            for a in acts:
-                x = math.log(n_a[a] / n)
-                for f in allf:
-                    p = (n_af[a][f] + 1) / (n_a[a] + 2)
-                    x += math.log(p if f in fe else 1 - p)
-                sc[a] = x
-            mx = max(sc.values())
-            z = sum(math.exp(v - mx) for v in sc.values())
-            return {a: math.exp(v - mx) / z for a, v in sc.items()}
+        def fit(weighted):
+            """weighted: [(node, action, weight)] -> naive Bayes counts."""
+            n_a, n_af = Counter(), defaultdict(Counter)
+            for x, a, w in weighted:
+                n_a[a] += w
+                for f in feats(x):
+                    n_af[a][f] += w
+            return n_a, n_af
+
+        def make_post(n_a, n_af):
+            acts = sorted(n_a, key=str)
+            n = sum(n_a.values())
+
+            def nb_post(e):
+                """The posterior over actions for entity e (log-space, normalised)."""
+                fe = feats(e)
+                sc = {}
+                for a in acts:
+                    x = math.log(n_a[a] / n)
+                    for f in allf:
+                        p = (n_af[a][f] + 1) / (n_a[a] + 2)
+                        x += math.log(p if f in fe else 1 - p)
+                    sc[a] = x
+                mx = max(sc.values())
+                z = sum(math.exp(v - mx) for v in sc.values())
+                return {a: math.exp(v - mx) / z for a, v in sc.items()}
+            return nb_post
+
+        if LABELS == "em":
+            # EM over every consistent walk of every example: equal weights first, then each walk
+            # weighted by the product of its actions' posteriors (its final STOP included).
+            cands = [(s_, ws) for s_, ws in candidates if ws]
+            weights = [[1 / len(ws)] * len(ws) for _, ws in cands]
+            for _ in range(EM_ROUNDS):
+                nb_post = make_post(*fit([(x, a, w) for (_, ws), wt in zip(cands, weights) for path, w in zip(ws, wt) for x, a in path]))
+                cache = {}
+                pp = lambda x: cache.setdefault(x, nb_post(x))
+                weights = []
+                for _, ws in cands:
+                    sc = [math.prod(pp(x).get(a, 1e-12) for x, a in path) for path in ws]
+                    z = sum(sc)
+                    weights.append([v / z for v in sc])
+            labels = defaultdict(Counter)
+            walk_len = {}
+            for (s_, ws), wt in zip(cands, weights):
+                walk_len[s_] = defaultdict(float)
+                for path, w in zip(ws, wt):
+                    walk_len[s_][len(path) - 1] += w
+                    for x, a in path:
+                        labels[x][a] += w
+            unique = sum(max(wt) > 0.99 for wt in weights)
+            ambiguous = len(cands) - unique
+            nb_post = make_post(*fit([(x, a, w) for (_, ws), wt in zip(cands, weights) for path, w in zip(ws, wt) for x, a in path]))
+        node_label = {x: c.most_common(1)[0][0] for x, c in labels.items()}
+        if LABELS != "em":
+            nb_post = make_post(*fit([(x, a, 1.0) for x, a in node_label.items()]))
 
         def nb(e):
             return top(nb_post(e))

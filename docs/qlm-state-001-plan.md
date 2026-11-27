@@ -82,3 +82,39 @@ reported apart. Only completed-and-accepted mass is the answer.
 - Learned state design. The step slot is supplied.
 - Reasoning in general. One kind of global evidence (length) is tested.
 - Scalable learning. The labels still come from walk enumeration.
+
+## Revision 1: diagnostics and uncertain meanings (after the first results)
+
+Written after STATE-001's results and after one look, at seed 202, the
+confirmation seed that failed. It is exploratory, not a new
+pre-registration of the arms above. Seed 202 is now spent; the fresh
+confirmation seeds are 301 to 303.
+
+**New arms:**
+- **S-global:** an entity-only state that enforces the length by the
+  global pass index. In synchronous passes every active state has taken
+  the same number of steps, so this is equivalent to S for this
+  constraint; the arm tests that.
+- **S-soft:** the meaning of a length word is a distribution,
+  P(length | word), from the weighted counts. Mass that stops at n steps
+  is weighted by P(n | word), not rejected outright.
+- **S-oracle (diagnostic only):** the true length, from world.json. It
+  separates "the constraint cannot be read" from "the constraint does not
+  help".
+
+**New labelling, `LABELS=em`:**
+- Every consistent walk of every training example is kept, with equal
+  weights at first.
+- Ten rounds: the naive Bayes is fitted from fractional labels, and each
+  walk is re-weighted by the product of its actions' posteriors, its final
+  STOP included.
+- Walk lengths become distributions, and so do word meanings.
+
+**Questions, each answered on the comparison worlds and then once on seeds
+301 to 303:**
+1. Does S-oracle beat E at 7 steps (is the 7-step failure one of
+   grounding)?
+2. Does S-global equal S (is the per-entity step count needed)?
+3. Do S-soft and EM labels avoid the wrong-meaning collapse?
+4. Do EM labels improve node accuracy and 5-step accuracy over shortest
+   labels?
