@@ -93,5 +93,7 @@ It is scored on the same development sentences, 1,001 to 3,000.
   and beyond.
 - **Not measured yet:**
   - the plan's "preserving distinctions" measure;
-  - the transformer on exactly these sentences;
-  - E4.
+  - E4 (since done: [results-qlm-v2-e4.md](results-qlm-v2-e4.md)).
+
+  The transformer on exactly these sentences was measured after the first
+  version of this note; it is the table above.
