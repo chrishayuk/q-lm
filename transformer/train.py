@@ -11,10 +11,21 @@ Writes, for training size N and seed S:
 - data/transformer-N-sS.curve: "step bits" on 2,000 development sentences,
   every 250 steps;
 - data/transformer-N-sS.pt: the kept weights, for transformer/bench.py.
-`qlm report data` reads and judges them. PAD and the start token are never
+`qlm report data` reads and judges them.
+
+With ARCH=llama, the same for LlamaForCausalLM (RMSNorm, rotary positions,
+gated SiLU feed-forward of width 512, tied embeddings), which LARQL's
+VINDEX3 admits.
+
+With ARCH=gpt2, the model is Hugging Face's GPT2LMHeadModel at the same
+size (4 layers, width 128, 4 heads; tied input and output embeddings, no
+dropout), trained identically. Its files are named gpt2-N-sS, and it is
+also saved as a Hugging Face checkpoint with a word-level tokenizer in
+DIR/gpt2-N-sS/, for LARQL. PAD and the start token are never
 predicted: their logits are removed before every probability.
 """
 import math
+import os
 import random
 import sys
 import time
@@ -90,6 +101,40 @@ class Model(nn.Module):
         for b in self.blocks:
             x = b(x, mask)
         return self.out(self.ln(x))
+
+
+ARCH = os.environ.get("ARCH", "transformer")
+if ARCH == "gpt2":
+    from transformers import GPT2Config, GPT2LMHeadModel
+
+    class Model(nn.Module):  # noqa: F811 (replaces the model above)
+        def __init__(self):
+            super().__init__()
+            cfg = GPT2Config(
+                vocab_size=len(vocab), n_positions=MAX_LEN, n_embd=D, n_layer=LAYERS, n_head=HEADS,
+                resid_pdrop=0.0, embd_pdrop=0.0, attn_pdrop=0.0, bos_token_id=BOS, eos_token_id=EOS,
+                pad_token_id=PAD,
+            )
+            self.hf = GPT2LMHeadModel(cfg)
+
+        def forward(self, ids):
+            return self.hf(input_ids=ids).logits
+elif ARCH == "llama":
+    from transformers import LlamaConfig, LlamaForCausalLM
+
+    class Model(nn.Module):  # noqa: F811 (replaces the model above)
+        def __init__(self):
+            super().__init__()
+            cfg = LlamaConfig(
+                vocab_size=len(vocab), hidden_size=D, intermediate_size=4 * D, num_hidden_layers=LAYERS,
+                num_attention_heads=HEADS, num_key_value_heads=HEADS, max_position_embeddings=MAX_LEN,
+                tie_word_embeddings=True, attention_dropout=0.0, bos_token_id=BOS, eos_token_id=EOS,
+                pad_token_id=PAD,
+            )
+            self.hf = LlamaForCausalLM(cfg)
+
+        def forward(self, ids):
+            return self.hf(input_ids=ids).logits
 
 
 def batches(sentences, size, shuffle):
@@ -173,7 +218,22 @@ with torch.no_grad():
             ids.append(nxt)
         samples.append(" ".join(vocab[i] for i in ids[1:]))
 
-name = f"{DIR}/transformer-{N}-s{SEED}"
+name = f"{DIR}/{ARCH}-{N}-s{SEED}"
+if ARCH in ("gpt2", "llama"):
+    from tokenizers import Tokenizer, models, pre_tokenizers
+    from transformers import PreTrainedTokenizerFast
+
+    model.hf.save_pretrained(name)
+    # pretraining_tp is a training-time knob, inert at 1; VINDEX3 refuses
+    # config keys it does not read, so it is left out.
+    import json
+
+    cfg = json.load(open(f"{name}/config.json"))
+    cfg.pop("pretraining_tp", None)
+    json.dump(cfg, open(f"{name}/config.json", "w"), indent=2)
+    tok = Tokenizer(models.WordLevel({w: i for i, w in enumerate(vocab)}, unk_token="<PAD>"))
+    tok.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
+    PreTrainedTokenizerFast(tokenizer_object=tok, bos_token="<S>", eos_token="END", pad_token="<PAD>", unk_token="<PAD>").save_pretrained(name)
 with open(f"{name}.bits", "w") as f:
     f.write(f"{h} {d} {ds} {worst} params={params} steps={STEPS} seed={SEED} train_secs={secs:.0f} device={device}\n")
 with open(f"{name}.samples", "w") as f:

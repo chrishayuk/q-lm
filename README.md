@@ -72,6 +72,32 @@ is [docs/results.md](docs/results.md). Inside–outside convergence,
 rule pruning (QLM-004) and matched inference cost (QLM-PERF-001) are
 [docs/results-qlm004.md](docs/results-qlm004.md).
 
+## Direction
+
+The long-term target is a learned, executable grammar that models language
+as well as GPT-2 Small (124M parameters). TinyStories is the first
+natural-language milestone. In order:
+
+1. Colmerauer's language: done, with the corrections in
+   [docs/results-qlm004.md](docs/results-qlm004.md).
+2. Independently generated grammar families: QLM-005,
+   [docs/qlm005-plan.md](docs/qlm005-plan.md).
+3. Facts and compositional relationships in a synthetic language.
+4. TinyStories.
+5. WikiText, then GPT-2 Small and SmolLM2 (135M) for comparison.
+
+**What stands between steps 2 and 4.** The learner as built does not scale
+to natural text.
+- It takes the context of a substring to be the whole rest of the
+  sentence. In natural text, almost no two contexts match.
+- It enumerates every substring of every sentence.
+
+TinyStories needs a different way of finding categories, such as bounded
+or clustered contexts, not a larger run of this one. The way the
+probabilities are fitted (inside–outside) also suppresses rarely exercised
+rules (results-qlm004.md). A learner meant to keep capabilities its data
+rarely shows needs an answer to that as well.
+
 ## Licence
 
 Apache-2.0, as q-systems.
