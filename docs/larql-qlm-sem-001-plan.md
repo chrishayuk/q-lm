@@ -1,0 +1,73 @@
+# LARQL-QLM-SEM-001 plan: does a fact have a state of its own, apart from its wording?
+
+Written before any measurement. It runs on the version-2 semantic worlds
+(QLM-SEMANTIC-001, change 2), after their transformers are trained.
+
+## Question
+
+The transformers carry a fact from one phrasing to another: for example,
+from `C has capital K .` to `the capital of C is` → K, 83% to 100% in
+version 1. Is there an internal state that stands for the fact
+capital(C, K), the same under both wordings? And if so, can it be moved
+from one wording to another, so that the fact goes with it and the wording
+does not?
+
+## Prompts
+
+For every country C, two prompts ending where the capital comes next:
+- wording 1: `C has capital`
+- wording 2: `the capital of C is`
+
+For the 6 countries whose second phrasing is held out, only wording 1 was
+ever trained with the capital following. Those 6 are the test of transfer.
+The other 18 are the control, seen in both.
+
+## Measures, at every layer (embedding; after each attention step; after each block)
+
+All at the last prompt position.
+
+1. **Convergence.** The cosine similarity of the states of:
+   - the same fact in the two wordings;
+   - different facts in the same wording;
+   - different facts in different wordings.
+
+   A fact state predicts that the first is higher than the second at some
+   layer, rising with depth. Reported for the 18 seen and the 6 held out
+   separately.
+2. **Fact decoding.** A linear probe, trained on wording 1's states over
+   all 24 countries, reads the capital. It is tested on wording 2's states.
+   Above chance (1/24) means a shared direction for the answer. Controlled
+   against the same probe on an untrained model.
+3. **Transplant.** At layer l, the last-position state of `the capital of
+   C' is` is replaced by that of a donor, and the probability of K (C's
+   capital) and of K' (C''s) is measured at the output. Donors:
+   - `the capital of C is`, the same wording: the fact should move;
+   - `C has capital`, the other wording: does the fact move without the
+     wording?
+   - `C is in`, the same country with another relation: control. The
+     country moves, not the capital fact;
+   - a random state of the same norm: control.
+
+   The measures are:
+   - the share of the 24 × 23 pairs where K becomes the most probable
+     city;
+   - the mean change in log2 P(K) − log2 P(K').
+4. **The 6 held-out phrasings.** The same transplant, with the donor from
+   wording 1 (the only one trained). If moving that state into wording 2's
+   run gives K, the model's wording-2 failure, where there is one, lies in
+   reading out, not in having the fact.
+
+## What would count
+
+- **A shared fact state at layer l:**
+  - same-fact similarity exceeds different-fact similarity by at least 0.2;
+  - the cross-wording probe reads the capital at 50% or better;
+  - a transplant from the other wording makes K the top city in at least
+    half the pairs, where the other-relation control does so in under a
+    tenth as many.
+- **Wording-independent transfer:** the cross-wording transplant does at
+  least half as well as the same-wording one.
+
+Models: Llama and the custom transformer, seeds 1 to 3, on the three
+version-2 worlds. The same layer-by-layer check of LARQL against PyTorch as
+in GROUP-001 comes first, on one model per architecture.
