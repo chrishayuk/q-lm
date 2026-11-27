@@ -92,6 +92,8 @@ weight changed: [docs/results-larql-qlm-resolve-001.md](docs/results-larql-qlm-r
 an external graph driven only by activations (relation readable, entity
 the bottleneck; facts edited and added at 42 to 62%):
 [docs/results-larql-qlm-external-001.md](docs/results-larql-qlm-external-001.md).
+How the learner's cost grows (the model stops growing; its bookkeeping
+does not): [docs/results-qlm-scale-001-kind1.md](docs/results-qlm-scale-001-kind1.md).
 
 ## Direction
 

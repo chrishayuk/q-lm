@@ -1354,6 +1354,85 @@ fn equiv(dir: &str, n: usize) {
     println!("\nChosen by the shortest description: {}\n", arms.iter().map(|(a, (_, s))| format!("{a} {s}")).collect::<Vec<_>>().join("; "));
 }
 
+/// QLM-SCALE-001, kind 1: the present learner (arm A) on the first n training
+/// sentences. One line of measurements; run one process per size so that
+/// peak memory (`/usr/bin/time -l`) belongs to that size alone.
+fn scale(dir: &str, n: usize) {
+    use q_lm::prefix::Prefix;
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let n = n.min(train.len());
+    let sub = &train[..n];
+    let dev = read(&format!("{dir}/dev.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let v = vocab.len() as f64 + 1.0;
+    let substrings: usize = {
+        let mut set: std::collections::HashSet<&[String]> = std::collections::HashSet::new();
+        for s in sub {
+            for i in 0..s.len() {
+                for j in i + 1..=s.len() {
+                    set.insert(&s[i..j]);
+                }
+            }
+        }
+        set.len()
+    };
+    let t = Instant::now();
+    let mut m = Subst::train(sub, &vocab);
+    let structure = t.elapsed().as_secs_f64();
+    let t = Instant::now();
+    m.em(sub, 20, 1e-3);
+    let estimation = t.elapsed().as_secs_f64();
+    // Active graph: the distinct binary rules an inside chart uses, per
+    // development sentence.
+    let mut active: Vec<usize> = Vec::new();
+    for s in dev.iter().take(200) {
+        let Some(ws): Option<Vec<u32>> = s.iter().map(|w| m.word_id(w)).collect() else { continue };
+        let chart = m.inside(&ws);
+        let k = ws.len();
+        let mut used: std::collections::HashSet<(u32, u32, u32)> = std::collections::HashSet::new();
+        for len in 2..=k {
+            for i in 0..=k - len {
+                let j = i + len;
+                for mid in i + 1..j {
+                    for &b in chart[i][mid].keys() {
+                        for &c in chart[mid][j].keys() {
+                            for &(a, _) in m.binary.get(&(b, c)).into_iter().flatten() {
+                                used.insert((a, b, c));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        active.push(used.len());
+    }
+    active.sort();
+    let mean = active.iter().sum::<usize>() as f64 / active.len().max(1) as f64;
+    let p95 = active.get(active.len() * 95 / 100).copied().unwrap_or(0);
+    let pf = Prefix::new(&m);
+    let (mut secs, mut toks) = (0.0, 0);
+    for s in dev.iter().take(5) {
+        let mut r = pf.start();
+        for i in 0..=s.len() {
+            let t = Instant::now();
+            let _ = pf.next(&r);
+            secs += t.elapsed().as_secs_f64();
+            toks += 1;
+            if i < s.len() {
+                match m.word_id(&s[i]) {
+                    Some(w) => pf.step(&mut r, w),
+                    None => break,
+                }
+            }
+        }
+    }
+    println!(
+        "| {n} | {substrings} | {} | {} | {mean:.0} | {p95} | {structure:.2} | {estimation:.1} | {:.4} | {:.2} |",
+        m.categories, m.size(), floored(&m, &dev[..2000.min(dev.len())], v), 1000.0 * secs / toks as f64
+    );
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1453,6 +1532,7 @@ fn main() {
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
+        Some("scale") => scale(&args[2], args[3].parse().unwrap()),
         Some("equiv") => equiv(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
