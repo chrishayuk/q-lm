@@ -1213,6 +1213,40 @@ fn shortcut(dir: &str) {
     println!("\nIn one category with the city-mate: {same_right} of {same} right. Not: {diff_right} of {diff} right.");
 }
 
+/// LARQL-QLM-GROUP-001: the first 1,000 development sentences of a family,
+/// every token labelled "word class slot depth" (one sentence per line,
+/// tokens separated by tabs). The families are unambiguous, so each
+/// sentence has exactly one labelled tree. Also writes the grammar
+/// learner's most probable lexical category of each word (full training
+/// size, 20 rounds).
+fn roles(dir: &str) {
+    use q_lm::family::{Family, Sym};
+    use q_lm::subst::Subst;
+    let f = Family::parse(&fs::read_to_string(format!("{dir}/family.txt")).unwrap());
+    let mut by: HashMap<Vec<String>, Vec<(String, String, i32, usize)>> = HashMap::new();
+    for t in f.labelled(&Sym::S, 1, -1, 0) {
+        let words: Vec<String> = t.iter().map(|x| x.0.clone()).collect();
+        assert!(by.insert(words, t).is_none(), "an ambiguous sentence");
+    }
+    let dev = read(&format!("{dir}/dev.txt"));
+    write(
+        &format!("{dir}/roles.txt"),
+        dev.iter().take(1000).map(|s| by[s].iter().map(|(w, c, sl, d)| format!("{w} {c} {sl} {d}")).collect::<Vec<_>>().join("\t")),
+    );
+    let train = read(&format!("{dir}/train.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let mut g = Subst::train(&train, &vocab);
+    g.em(&train, 20, 1e-3);
+    write(
+        &format!("{dir}/lexical.txt"),
+        vocab.iter().map(|w| {
+            let best = g.word_id(w).and_then(|i| g.lexical.get(&i)).and_then(|cs| cs.iter().max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())).map(|c| c.0 as i64).unwrap_or(-1);
+            format!("{w} {best}")
+        }),
+    );
+    println!("{dir}: roles.txt (1,000 sentences) and lexical.txt");
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1311,6 +1345,7 @@ fn main() {
         Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap(), args.get(4).map(String::as_str) != Some("by-person")),
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
+        Some("roles") => roles(&args[2]),
         Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),

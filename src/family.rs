@@ -223,6 +223,50 @@ impl Family {
         }
     }
 
+    /// Every tree of `a` with depth at most `d`, as its words, each labelled
+    /// (word class, argument slot, clause depth). The slot is the index of
+    /// the X that holds the word among its clause's Xs (-1 outside any X),
+    /// and the depth is the number of embeddings around the word.
+    pub fn labelled(&self, a: &Sym, d: usize, slot: i32, depth: usize) -> Vec<Vec<(String, String, i32, usize)>> {
+        match a {
+            Sym::Class(n) => self.words_of(n).iter().map(|w| vec![(w.clone(), n.clone(), slot, depth)]).collect(),
+            Sym::Sub => {
+                if d == 0 {
+                    vec![]
+                } else {
+                    self.labelled(&Sym::S, d - 1, -1, depth + 1)
+                }
+            }
+            _ => {
+                let mut out = Vec::new();
+                for p in self.productions(a) {
+                    let mut acc: Vec<Vec<(String, String, i32, usize)>> = vec![vec![]];
+                    let mut xs = 0;
+                    for y in &p {
+                        let sl = if *a == Sym::S && *y == Sym::X {
+                            xs += 1;
+                            xs - 1
+                        } else {
+                            slot
+                        };
+                        let ys = self.labelled(y, d, sl, depth);
+                        let mut next = Vec::with_capacity(acc.len() * ys.len());
+                        for a in &acc {
+                            for b in &ys {
+                                let mut v = a.clone();
+                                v.extend(b.iter().cloned());
+                                next.push(v);
+                            }
+                        }
+                        acc = next;
+                    }
+                    out.extend(acc);
+                }
+                out
+            }
+        }
+    }
+
     /// The corpus: every distinct sentence of depth at most 1, sorted, and
     /// how many of them have more than one tree.
     pub fn corpus(&self) -> (Vec<Vec<String>>, usize) {

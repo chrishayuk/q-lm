@@ -1,6 +1,16 @@
 # LARQL-QLM-GROUP-001 plan: do transformers group words as the grammar does?
 
-Written before any measurement.
+Written before any measurement, and amended once before any measurement.
+
+**Amendment.** A linear probe reads a word's class from its input
+embedding alone, because every word has its own vector. So probe accuracy
+for class cannot show grouping: it is near 100% at layer 0 by
+construction. Grouping is measured by geometry instead:
+- the distance between the mean states of words of one class, over the
+  distance between words of different classes;
+- the clustering's agreement with the true classes.
+
+The probes stay, as measures of what is decodable.
 
 ## Question
 
@@ -67,10 +77,11 @@ Every token of the first 1,000 development sentences, at every layer
 
 ## What would count
 
-- **Grouping by category at a layer:** the class probe beats the random
-  model's probe at that layer by 20 points, and beats layer 0.
-- **Grouping without losing identity:** both the category probe and the
-  identity probe are above 90% at the same layer.
+- **Grouping by category at a layer:** the within/between distance ratio
+  is below 0.5, and below both the untrained model's ratio at that layer
+  and the trained model's ratio at layer 0.
+- **Grouping without losing identity:** the grouping criterion holds and
+  the identity probe is above 90% at the same layer.
 - **Functional grouping:** under same-class substitution, the class-level
   total variation is under a quarter of the word-level one, and under a
   quarter of the other-class control's.
