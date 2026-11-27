@@ -58,10 +58,20 @@ The late feed-forward:
 - **Not amplification as defined** either. Even with every city direction
   taken out of its input, its output still names the capital (0.81 to 0.90
   in Llama, 0.58 in the custom transformer).
-- **What it is:** the late feed-forward computes the answer again, from
-  something other than the answer's own direction, and adds it to an
-  answer already present. It is redundant. Mostly so in Llama; in the
-  custom transformer it leans more on the answer already present.
+- **What is established, and what is not:**
+
+  | finding | evidence |
+  |---|---|
+  | the answer is present before the late feed-forward | strong |
+  | the late feed-forward's output favours the answer on its own | strong |
+  | the late feed-forward is not needed for most correct answers | strong: removing it costs 6 to 11 points |
+  | its output still favours the answer when the cities' output directions are removed from its input | strong |
+  | it performs a fresh lookup of the fact | **not established** |
+
+  Removing the output directions does not remove every trace of the city:
+  the answer could still be in another subspace, or non-linearly. A first
+  draft said the late feed-forward "computes the answer again"; that
+  overstated it.
 
 Where the fact is actually produced is the middle block's attention and
 feed-forward at the answer position. That is the next place to look.
