@@ -51,6 +51,32 @@ bits, at both 10,000 and 100,000 sentences.
   mixing weight was fitted separately. The claim that holds without that
   choice is the across-the-grid one: every PPMI setting but one passes.
 
+## Against the transformer, on the same sentences
+
+The Llama arm (`ARCH=llama transformer/train.py`):
+- vocabulary 8,525;
+- 2,141,312 parameters;
+- 6,000 steps of 64 sentences;
+- the best of every 200 steps on a tenth of its training sentences kept;
+- seed 1.
+
+It is scored on the same development sentences, 1,001 to 3,000.
+
+| training sentences | Llama | 5-gram | v2 prototype, mixed (widths 1+2+4, PPMI, 256 nodes) |
+|---:|---:|---:|---:|
+| 1,000 | 6.755 | 6.257 | **6.184** |
+| 10,000 | 5.074 | 5.130 | **4.999** |
+| 100,000 | **3.761** | 4.134 | 4.058 (best setting, width 2) |
+
+- **With little data, the v2 prototype is ahead:** of the transformer by
+  0.57 bits at 1,000 sentences and 0.08 at 10,000. The transformer is
+  also behind the 5-gram at both sizes.
+- **At 100,000 sentences, the transformer is ahead by 0.30 bits.** It
+  improves 1.31 bits from 10,000 to 100,000; the prototype improves 0.94.
+- The transformer had one seed and no tuning for this corpus, with the
+  same fixed 6,000 steps at every size. Its numbers are a reference, not a
+  tuned bar.
+
 ## What it is, and what it is not
 
 - **It is a known technique.** Distributional word classes interpolated
