@@ -141,8 +141,24 @@ def score(d):
         rs = {true_rel.get(f) for f in fs}
         rep[g] = rs.pop() if len(rs) == 1 else None
     learned_b = {(s, rep[g], o) for (s, g), objs in m["knowledge"].items() for o in objs if rep.get(g)}
+    unmapped = sum(len(objs) for (s, g), objs in m["knowledge"].items() if not rep.get(g))
+    # Composed facts are true facts too, but not one-hop ones: counted apart.
+    comp_truth = set()
+    if world["task"] == "A":
+        r = world["relations"]
+        comp_truth = {(p, r["continent"][r["located"][r["lives"][p]]]) for p in r["lives"]}
+    else:
+        def end(v):
+            while world["kind"][v] not in world["terminal"]:
+                v = world["edges"][v][world["rule"][world["kind"][v]]]
+            return v
+        comp_truth = {(v, end(v)) for v in world["kind"]}
+    unmapped_true = sum(1 for (s, g), objs in m["knowledge"].items() if not rep.get(g) for o in objs if (s, o) in comp_truth)
     tp = len(learned_b & truth_b)
-    out.append(f"  bindings: {len(learned_b)} learned (one-hop relations), precision {tp / max(len(learned_b), 1):.3f}, recall {tp / len(truth_b):.3f}")
+    allb = len(learned_b) + unmapped
+    out.append(f"  bindings: {allb} learned in all; {len(learned_b)} in relations matching a one-hop relation, precision {tp / max(len(learned_b), 1):.3f}, "
+               f"recall {tp / len(truth_b):.3f}; {unmapped} in relations matching none ({unmapped_true} of them true composed facts); "
+               f"precision over all bindings, counting composed facts as correct, {(tp + unmapped_true) / max(allb, 1):.3f}")
 
     # Execution over the learned knowledge, program supplied as wordings.
     rt = Runtime(m["knowledge"])

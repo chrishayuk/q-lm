@@ -63,6 +63,8 @@ def task_a(rng, deep):
 
     composed = {p: lives_on(p) for p in P if p not in held}
     comp_text = [f"{p} lives on {t} ." for p, t in composed.items()]
+    if deep == "learn":  # D-learn: composed four-hop answers for the training people as well
+        comp_text += [f"{p} lives in hemisphere {rel['hemisphere'][t]} ." for p, t in composed.items()]
     tests = [("A", "compose", f"{p} lives on", lives_on(p), 3) for p in sorted(held)]
     tests += [("A", "distractor", f"{p} was born in", rel["born"][p], 1) for p in sorted(held)]
     if deep:
@@ -118,7 +120,7 @@ def task_b(rng):
 def main():
     out, task, seed, regime = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     rng = random.Random(seed)
-    facts, comp, tests, world = task_b(rng) if task == "B" else task_a(rng, task == "A-deep")
+    facts, comp, tests, world = task_b(rng) if task == "B" else task_a(rng, {"A": False, "A-deep": True, "A-deepL": "learn"}[task])
     world["regime"] = regime
     say = lambda f: rng.choice(world["phrasings"][f[0]]).format(f[1], f[2])
     text = [say(f) for f in facts for _ in range(REPEAT)] + (comp * REPEAT if regime == "T2" else [])
@@ -129,6 +131,8 @@ def main():
     for f in (f"{out}/train.txt", f"{out}/train-{len(text)}.txt"):
         open(f, "w").write("\n".join(text) + "\n")
     open(f"{out}/dev.txt", "w").write("\n".join(dev[:2000]) + "\n")
+    for f in ("deep.txt", "deep-seen.txt"):  # transformer/train.py reports bits on these; here they are not tests
+        open(f"{out}/{f}", "w").write("\n".join(dev[:200]) + "\n")
     vocab = sorted({w for s in text + dev for w in s.split()} | {t[3] for t in tests} | {w for t in tests for w in t[2].split()})
     open(f"{out}/vocab.txt", "w").write("\n".join(vocab + ["END"]) + "\n")
     open(f"{out}/tests.tsv", "w").write("".join("\t".join(map(str, t)) + "\n" for t in tests))

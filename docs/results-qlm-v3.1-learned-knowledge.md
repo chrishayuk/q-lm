@@ -33,7 +33,12 @@ It reads only `train.txt`.
 - the program, named by one wording per relation ("{} lives in {} .");
 - for task B, the routing rule and the stopping kinds.
 
-`world.json` is read only to score.
+**Correction (after review):** an earlier version said `world.json` is read
+only to score. The learning function receives only the text. But the
+scorer also takes from `world.json` the program and, for task B, the
+routing rule and the stopping kinds, which the runtime then executes. So
+`world.json` supplies the computation at this stage, as well as scoring
+it.
 
 ## Results, all 18 worlds
 
@@ -44,9 +49,16 @@ It reads only `train.txt`.
 | relationship discovery | true relations recovered exactly | all, on every world (4, or 5 with hemispheres; 5 in B) |
 | | groups mixing two relations | 0 (lives and born link the same types and are kept apart: overlap 0) |
 | paraphrase learning | wordings grouped | 2 of 2 on every task-A world (overlaps 0.79 to 0.86) |
-| knowledge extraction | bindings, precision and recall | 1.000, 1.000 on every world |
+| knowledge extraction | bindings in relations matching a one-hop relation: precision and recall | 1.000, 1.000 on every world |
+| | bindings in relations matching none, reported apart | 0 under T1; under T2, 72 (A) and 135 (B), every one a true composed fact |
 | execution | accuracy over learned knowledge | the same as the oracle at every pass count, on every test |
 
+- **Precision, corrected (after review):** the first version computed
+  binding precision only over relations that match a true one-hop
+  relation, so spurious relations could not lower it. Bindings in
+  unmatched relations are now counted and checked separately, against the
+  true composed answers (task B: the true end of each path). None is
+  spurious.
 - **Under T2** the composed statements ("P lives on T .", "from X the
   end is Z .") form one extra relation of their own. It is not used by the
   supplied program.

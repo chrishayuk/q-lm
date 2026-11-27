@@ -1,0 +1,180 @@
+data-v3/B-s1-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 117.3s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ holds _ ., green→_ points to _ ., red→_ holds _ ., white→_ points to _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.010; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ holds _ ., green→_ holds _ ., red→_ holds _ ., white→_ points to _ ., yellow→STOP; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→from _ the end is _ ., green→from _ the end is _ ., red→_ faces _ ., white→_ faces _ ., yellow→_ points to _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ faces _ ., green→_ holds _ ., red→_ faces _ ., white→_ holds _ ., yellow→_ holds _ .; fit 0.004, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→STOP, blue→STOP, green→_ points to _ ., red→_ calls _ ., white→_ faces _ ., yellow→_ holds _ .; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s2-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 117.0s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ points to _ ., green→_ points to _ ., red→_ holds _ ., white→_ holds _ ., yellow→from _ the end is _ .; fit 0.005, held-back tenth 0.010; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ calls _ ., green→_ holds _ ., red→_ points to _ ., white→from _ the end is _ ., yellow→_ calls _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ points to _ ., green→from _ the end is _ ., red→_ calls _ ., white→_ points to _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ calls _ ., green→_ faces _ ., red→from _ the end is _ ., white→_ calls _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→_ holds _ ., blue→_ faces _ ., green→_ calls _ ., red→STOP, white→STOP, yellow→_ points to _ .; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s3-T2 (B, T2): conditions (relations with at most 8 values): _ is _ .
+  learned in 119.2s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ points to _ ., green→from _ the end is _ ., red→_ faces _ ., white→_ holds _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 15625 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→from _ the end is _ ., green→_ calls _ ., red→_ calls _ ., white→_ points to _ ., yellow→_ points to _ .; fit 0.008, held-back tenth 0.010; 15625 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→from _ the end is _ ., green→from _ the end is _ ., red→_ points to _ ., white→_ calls _ ., yellow→_ faces _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ faces _ ., green→_ calls _ ., red→_ faces _ ., white→_ calls _ ., yellow→_ holds _ .; fit 0.007, held-back tenth 0.000; 15625 tables
+  from _ the end is _ .: POLICY; condition _ is _ .; table black→STOP, blue→STOP, green→_ calls _ ., red→_ faces _ ., white→_ points to _ ., yellow→_ holds _ .; fit 1.000, held-back tenth 1.000; 15625 tables
+    against the world's rule: 6 of 6 values agree
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+        32 | 1.000 | 1.000 | 1.000 | 1.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 1.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/A-s1-T2 (A, T2): conditions (relations with at most 8 values): _ is in _ ., _ lives on _ .
+  learned in 0.0s
+  _ is a city of _ . / _ is located in _ .: no policy; condition _ is in _ .; table fivibo→_ is from _ ., gavoti→_ is from _ ., gidomi→_ is from _ ., varole→_ is from _ .; fit 0.000, held-back tenth 0.000; 162 tables
+  _ is from _ . / _ lives in _ .: no policy; condition _ is in _ .; table fivibo→_ is a city of _ ., gavoti→_ is a city of _ ., gidomi→_ is a city of _ ., varole→_ is a city of _ .; fit 0.000, held-back tenth 0.000; 162 tables
+  _ was born in _ .: no policy; condition _ is in _ .; table fivibo→_ is a city of _ ., gavoti→_ is a city of _ ., gidomi→_ is a city of _ ., varole→_ is a city of _ .; fit 0.000, held-back tenth 0.000; 162 tables
+  held-out tests, learned stop (gate worst |sum - 1| 1.1e-16)
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 0.000
+         2 | 0.000 | 0.000
+         3 | 0.000 | 0.000
+         4 | 0.000 | 0.000
+         8 | 0.000 | 0.000
+        32 | 0.000 | 0.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 1.1e-16)
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 0.000
+         2 | 0.000 | 0.000
+         3 | 0.000 | 0.000
+         4 | 0.000 | 0.000
+         8 | 0.000 | 0.000
+        32 | 0.000 | 0.000
+data-v3/A-deepL-s1-T2 (A, T2): conditions (relations with at most 8 values): _ is in _ ., _ lies in _ ., _ lives in hemisphere _ ., _ lives on _ .
+  learned in 0.0s
+  _ is a city of _ . / _ is located in _ .: no policy; condition _ is in _ .; table fivibo→_ is from _ ., rutaba→_ is from _ ., timulu→_ is from _ ., varole→_ is from _ .; fit 0.000, held-back tenth 0.000; 180 tables
+  _ is from _ . / _ lives in _ .: no policy; condition _ is in _ .; table fivibo→_ is a city of _ ., rutaba→_ is a city of _ ., timulu→_ is a city of _ ., varole→_ is a city of _ .; fit 0.000, held-back tenth 0.000; 180 tables
+  _ was born in _ .: no policy; condition _ is in _ .; table fivibo→_ is a city of _ ., rutaba→_ is a city of _ ., timulu→_ is a city of _ ., varole→_ is a city of _ .; fit 0.000, held-back tenth 0.000; 180 tables
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000
+data-v3/B-s1-T1 (B, T1): conditions (relations with at most 8 values): _ is _ .
+  learned in 56.2s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ holds _ ., green→_ points to _ ., red→_ holds _ ., white→_ points to _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.010; 4096 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ holds _ ., green→_ holds _ ., red→_ holds _ ., white→_ points to _ ., yellow→STOP; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ calls _ ., green→STOP, red→_ faces _ ., white→_ faces _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→_ faces _ ., green→_ holds _ ., red→_ faces _ ., white→_ holds _ ., yellow→_ holds _ .; fit 0.004, held-back tenth 0.000; 4096 tables
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s2-T1 (B, T1): conditions (relations with at most 8 values): _ is _ .
+  learned in 56.4s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ points to _ ., green→_ faces _ ., red→_ faces _ ., white→_ faces _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ calls _ ., green→_ calls _ ., red→_ points to _ ., white→_ holds _ ., yellow→_ holds _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ points to _ ., green→STOP, red→_ calls _ ., white→_ points to _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ holds _ ., green→_ holds _ ., red→_ calls _ ., white→_ calls _ ., yellow→_ calls _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s3-T1 (B, T1): conditions (relations with at most 8 values): _ is _ .
+  learned in 56.9s
+  _ calls _ .: no policy; condition _ is _ .; table black→_ holds _ ., blue→_ faces _ ., green→_ points to _ ., red→_ points to _ ., white→_ holds _ ., yellow→_ points to _ .; fit 0.005, held-back tenth 0.000; 4096 tables
+  _ faces _ .: no policy; condition _ is _ .; table black→_ calls _ ., blue→STOP, green→_ calls _ ., red→_ calls _ ., white→_ points to _ ., yellow→_ points to _ .; fit 0.008, held-back tenth 0.010; 4096 tables
+  _ holds _ .: no policy; condition _ is _ .; table black→STOP, blue→_ faces _ ., green→_ calls _ ., red→_ points to _ ., white→_ calls _ ., yellow→_ faces _ .; fit 0.007, held-back tenth 0.000; 4096 tables
+  _ points to _ .: no policy; condition _ is _ .; table black→_ faces _ ., blue→_ faces _ ., green→_ calls _ ., red→_ faces _ ., white→_ calls _ ., yellow→_ holds _ .; fit 0.007, held-back tenth 0.000; 4096 tables
+  held-out tests, learned stop (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000
+  held-out tests, CONTROL: no stop, fixed passes (gate worst |sum - 1| 0.0e+00)
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 0.000 | 0.000 | 0.000 | 0.000
+         3 | 0.000 | 0.000 | 0.000 | 0.000
+         4 | 0.000 | 0.000 | 0.000 | 0.000
+         8 | 0.000 | 0.000 | 0.000 | 0.000
+        32 | 0.000 | 0.000 | 0.000 | 0.000

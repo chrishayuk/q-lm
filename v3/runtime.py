@@ -56,6 +56,9 @@ class Runtime:
         p["END"] = FLOOR / n
         for e, w in state.items():
             p[e] += (1 - FLOOR) * w
+        missing = 1 - sum(state.values())  # nothing executed, or mass lost: spread it, so the result still sums to 1
+        for w in p:
+            p[w] += (1 - FLOOR) * missing / n
         return p
 
 
