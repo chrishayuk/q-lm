@@ -78,7 +78,9 @@ Which part of the transformer carries depth (rotary positions) is
 [docs/results-qlm-arch-001.md](docs/results-qlm-arch-001.md). Facts and
 relations (the grammar learner fails; transformers transfer phrasings and
 Llama composes, but neither reverses) are
-[docs/results-qlm-semantic-001.md](docs/results-qlm-semantic-001.md).
+[docs/results-qlm-semantic-001.md](docs/results-qlm-semantic-001.md). Inside
+the transformers (answer states, and an entity state before the query is
+computed): [docs/results-larql-qlm-sem-001-v2.md](docs/results-larql-qlm-sem-001-v2.md).
 
 ## Direction
 
