@@ -102,3 +102,60 @@ roles needs sentences where position does not give the role away.
   group by city, by continent, or not at all, layer by layer? And does
   swapping two people of one city preserve the city fact and the continent
   fact?
+
+## Addendum: tied embeddings, and attention against feed-forward
+
+Full tables: [tables/group-001-sub.md](tables/group-001-sub.md) (`SUB=1`).
+The distance ratio is read after each attention step (marked `a`) as well
+as after each block. Seed 1, full size.
+
+### Tied embeddings do not explain Llama's grouped embeddings
+
+The QLM-ARCH-001 arms on Colmerauer's language, ratio at layer 0 (the
+embedding) and at the last layer:
+
+| model | layer 0 | last layer |
+|---|---:|---:|
+| ablation base | 0.97 | 0.68 |
+| ablation, tied embeddings only | 0.97 | 0.73 |
+| ablation, rotary only | 0.99 | 0.69 |
+| ablation, RMSNorm only | 0.97 | 0.68 |
+| ablation, gated feed-forward only | 0.97 | 0.68 |
+| ablation, all four | 0.99 | 0.82 |
+| custom transformer | 0.97 | 0.70 |
+| Llama (Hugging Face) | **0.74** | 0.64 |
+
+- **Tying the output to the input embedding does not group the
+  embeddings.** Nor do all four Llama changes together, in this code.
+- So Llama's grouped embeddings come from something else in the Hugging
+  Face model. One candidate is its initialisation: its embeddings start at
+  a standard deviation of 0.02, the custom ones at 1. With weight decay,
+  small initial embeddings may be dominated by what training adds. This is
+  untested.
+- On Colmerauer's language every ratio is high (0.64 to 0.82), because the
+  word classes used there are coarse: the "function word" class mixes
+  `FAIT`, `QUE`, `PAR`, `DE`, `CE`, `EST` and `.`. Its ratios are not
+  comparable with the families'.
+
+### Attention against feed-forward
+
+How much each step lowers the ratio, block by block (attention; then
+feed-forward), at full size on the families:
+
+| model | block 1 | block 2 | block 3 | block 4 |
+|---|---|---|---|---|
+| right, custom | 0.01; 0.18 | 0.07; 0.24 | 0.09; 0.13 | 0.02; 0.06 |
+| centre, custom | 0.02; 0.21 | 0.02; 0.23 | 0.13; 0.18 | 0.02; 0.04 |
+| left, custom | 0.01; 0.20 | 0.04; 0.16 | 0.05; 0.18 | 0.04; 0.07 |
+| right, Llama | 0.05; 0.09 | 0.01; 0.02 | 0.00; 0.02 | 0.00; 0.01 |
+| centre, Llama | 0.04; 0.05 | 0.00; 0.04 | 0.00; 0.02 | 0.00; 0.01 |
+| left, Llama | −0.02; −0.01 | 0.00; 0.10 | 0.00; 0.05 | 0.00; 0.02 |
+
+- In the custom transformer, the feed-forward step does most of the
+  grouping in every block. The one large attention step is block 3 on
+  centre (0.13, against 0.18 for the feed-forward step).
+- In Llama, little is left to do after the embedding, and again what there
+  is comes mostly from the feed-forward steps.
+- **This is still correlational, and the measure leans towards
+  feed-forward** (LARQL-QLM-FFN-001, "why geometry is not enough"). The
+  causal test is FFN-001.

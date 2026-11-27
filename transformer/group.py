@@ -17,6 +17,14 @@ import torch
 import torch.nn.functional as F
 
 DIR, NAME = sys.argv[1], sys.argv[2]
+# SUB=1: also read the state after each block's attention (its residual
+# added), so that attention and feed-forward are seen apart.
+SUB = os.environ.get("SUB") == "1"
+if NAME.startswith("abl-"):
+    # An architecture ablation arm (QLM-ARCH-001): its switches from its name.
+    tag = NAME.split("-")[1]
+    os.environ.update(ARCH="ablate", POS="rope" if "rope" in tag else "learned", NORM="rms" if "rms" in tag else "layer",
+                      FFN="swiglu" if "swiglu" in tag else "gelu", TIE="1" if "tie" in tag else "0")
 torch.set_grad_enabled(False)
 torch.manual_seed(1)
 random.seed(1)
@@ -52,22 +60,33 @@ def load(trained):
     if trained:
         m.load_state_dict(torch.load(f"{DIR}/{NAME}.pt"))
     m.eval()
-    return m, list(m.blocks), (lambda ids: m.tok(ids) + m.pos(torch.arange(ids.shape[1])))
+    pos = getattr(m, "pos", None)
+    return m, list(m.blocks), (lambda ids: m.tok(ids) + (pos(torch.arange(ids.shape[1])) if pos is not None else 0))
 
 
 def states(fwd, layers, embed):
     """Per layer (0 = embedding), per sentence: tensor (tokens, width) at
     the word positions (after <S>)."""
-    out = [[] for _ in range(len(layers) + 1)]
-    caught = []
-    hooks = [l.register_forward_hook(lambda mod, i, o: caught.append(o[0] if isinstance(o, tuple) else o)) for l in layers]
+    first = lambda o: o[0] if isinstance(o, tuple) else o
+    caught, inputs, attn = [], [], []
+    hooks = [l.register_forward_hook(lambda mod, i, o: caught.append(first(o))) for l in layers]
+    if SUB:
+        for l in layers:
+            hooks.append(l.register_forward_pre_hook(lambda mod, args, kwargs: inputs.append(args[0] if args else kwargs["hidden_states"]), with_kwargs=True))
+            a = getattr(l, "self_attn", None) or l.attn
+            hooks.append(a.register_forward_hook(lambda mod, i, o: attn.append(first(o))))
+    out = [[] for _ in range(len(layers) * (2 if SUB else 1) + 1)]
     for s in sents:
         ids = torch.tensor([[1] + [ix[w] for w, *_ in s]])
-        caught.clear()
+        caught.clear(), inputs.clear(), attn.clear()
         fwd(ids)
         out[0].append(embed(ids)[0, 1:].float())
         for k, h in enumerate(caught):
-            out[k + 1].append(h[0, 1:].float())
+            if SUB:
+                out[2 * k + 1].append((inputs[k] + attn[k])[0, 1:].float())
+                out[2 * k + 2].append(h[0, 1:].float())
+            else:
+                out[k + 1].append(h[0, 1:].float())
     for h in hooks:
         h.remove()
     return out
@@ -240,11 +259,13 @@ for trained in (True, False):
         same = [D[x, y].item() for x in range(len(ws)) for y in range(x) if cls_of[ws[x]] == cls_of[ws[y]]]
         diff = [D[x, y].item() for x in range(len(ws)) for y in range(x) if cls_of[ws[x]] != cls_of[ws[y]]]
         ratio = (sum(same) / len(same)) / (sum(diff) / len(diff))
-        if L > 0:
-            sc, sw, n1 = substitution(fwd, layers, L - 1, True)
-            oc, ow, n2 = substitution(fwd, layers, L - 1, False)
+        label = str(L) if not SUB else ("0" if L == 0 else f"{(L + 1) // 2}{'a' if L % 2 else ''}")
+        if L > 0 and (not SUB or L % 2 == 0):
+            blk = (L - 1) if not SUB else (L // 2 - 1)
+            sc, sw, n1 = substitution(fwd, layers, blk, True)
+            oc, ow, n2 = substitution(fwd, layers, blk, False)
             sub = f"{sc:.3f} / {sw:.3f} ({n1})", f"{oc:.3f} / {ow:.3f} ({n2})"
         else:
             sub = ("–", "–")
-        print(f"| {L} | {acc['class']:.3f} | {'; '.join(ident)} | {acc['noun slot']:.3f} | {acc['noun depth']:.3f} | {a:.2f} | {ratio:.2f} | {sub[0]} | {sub[1]} |")
+        print(f"| {label} | {acc['class']:.3f} | {'; '.join(ident)} | {acc['noun slot']:.3f} | {acc['noun depth']:.3f} | {a:.2f} | {ratio:.2f} | {sub[0]} | {sub[1]} |")
     print()
