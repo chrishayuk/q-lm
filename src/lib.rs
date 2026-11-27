@@ -17,6 +17,7 @@
 
 pub mod ktails;
 pub mod ngram;
+pub mod prefix;
 pub mod subst;
 
 use qsystems::lm::Rng;

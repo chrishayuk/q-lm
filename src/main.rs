@@ -453,8 +453,8 @@ fn subst(dir: &str, largest: usize) {
         .map(String::from)
         .collect();
     let v = vocab.len() as f64 + 1.0;
-    println!("| training sentences | categories | rules | trained in | development: derivable | bits/token | deeper: derivable | deeper, corpus words: derivable | ungrammatical: derivable | samples finished | grammatical | of them not in training | of them deeper |");
-    println!("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    println!("| training sentences | categories | rules | trained in | development: derivable | bits/token | deeper: derivable | deeper, corpus words: derivable | ungrammatical: derivable | P(derivation finishes) | samples finished | grammatical | of them not in training | of them deeper |");
+    println!("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
     for n in sizes(train.len()).into_iter().filter(|&n| n <= largest) {
         let sub = &train[..n];
         let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
@@ -483,7 +483,7 @@ fn subst(dir: &str, largest: usize) {
             let finished: Vec<Sentence> = drawn.into_iter().flatten().collect();
             let j = judge_all(&finished, &sub_set);
             println!(
-            "| {n}{} | {} | {} | {secs:.2} s | {ok} of {} | {:.4} | {} of {} | {} of {} | {} of {} | {} | {} | {} | {} |",
+            "| {n}{} | {} | {} | {secs:.2} s | {ok} of {} | {:.4} | {} of {} | {} of {} | {} of {} | {:.6} | {} | {} | {} | {} |",
             if em > 0 { format!(", then {em} rounds of inside–outside") } else { String::new() },
             m.categories,
             m.size(),
@@ -495,6 +495,7 @@ fn subst(dir: &str, largest: usize) {
             deep_seen.len(),
             derivable(&negative),
             negative.len(),
+            m.termination(),
             finished.len(),
             j.grammatical,
             j.novel_grammatical,
@@ -513,6 +514,69 @@ fn subst(dir: &str, largest: usize) {
     }
 }
 
+/// QLM-003 qualification: the learned grammar as an autoregressive model.
+fn prefix(dir: &str, n: usize) {
+    use q_lm::prefix::Prefix;
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let deep_seen = read(&format!("{dir}/deep-seen.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let mut g = Subst::train(&train[..n], &vocab);
+    g.em(&train[..n], 5, 1e-3);
+    let t = Instant::now();
+    let pf = Prefix::new(&g);
+    println!("{n} training sentences: {} categories, {} rules; P(derivation finishes) {:.9}; left-corner closure in {:.2} s", g.categories, g.size(), pf.q[&g.start], t.elapsed().as_secs_f64());
+    // Identities: next-token probabilities (END included) sum to the prefix
+    // probability; their product along a sentence is its inside probability.
+    let (mut norm, mut chain, mut tokens, mut secs, mut bits): (f64, f64, usize, f64, f64) = (0.0, 0.0, 0, 0.0, 0.0);
+    for (set, name) in [(&dev[..200], "development"), (&deep_seen[..100], "deeper, corpus words")] {
+        let (mut b, mut toks) = (0.0, 0);
+        for s in set {
+            let mut r = pf.start();
+            let mut logp = 0.0;
+            for i in 0..=s.len() {
+                let t = Instant::now();
+                let next = pf.next(&r);
+                secs += t.elapsed().as_secs_f64();
+                tokens += 1;
+                let z: f64 = next.values().sum();
+                norm = norm.max(((z - r.prob) / r.prob).abs());
+                let w = s.get(i).map(|x| x.as_str()).unwrap_or(END);
+                logp += (next[w] / z).log2();
+                if i < s.len() {
+                    pf.step(&mut r, g.word_id(w).unwrap());
+                }
+            }
+            let direct = g.probability(s).log2();
+            chain = chain.max((logp - direct).abs());
+            b -= logp;
+            toks += s.len() + 1;
+        }
+        bits = b / toks as f64;
+        println!("  {name}: {} sentences, {:.4} bits/token read word by word", set.len(), bits);
+    }
+    let _ = bits;
+    println!("  most a next-token distribution strays from the prefix probability (relative): {norm:.2e}");
+    println!("  most the chain of next-token probabilities strays from the sentence probability: {chain:.2e} bits");
+    println!("  {:.2} ms per next-token distribution ({} distributions)", 1000.0 * secs / tokens as f64, tokens);
+    // Sampling agreement: the first word, from 20,000 derivations drawn
+    // directly, against the exact distribution.
+    let exact = pf.next(&pf.start());
+    let z: f64 = exact.values().sum();
+    let mut rng = Rng(SAMPLE_SEED);
+    let mut seen: std::collections::BTreeMap<String, f64> = Default::default();
+    let mut drawn = 0.0;
+    for _ in 0..20_000 {
+        if let Some(s) = g.sample(&mut rng, 400) {
+            *seen.entry(s[0].clone()).or_insert(0.0) += 1.0;
+            drawn += 1.0;
+        }
+    }
+    let tv: f64 = exact.iter().map(|(w, p)| (p / z - seen.get(w).copied().unwrap_or(0.0) / drawn).abs()).sum::<f64>() / 2.0;
+    println!("  first word: total variation between exact and 20,000 direct samples {tv:.4} ({drawn} finished)");
+}
+
 fn judge(path: &str) {
     let sys = paraphrase();
     let samples = read(path);
@@ -529,6 +593,7 @@ fn main() {
         Some("data") => data(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("report") => report(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("judge") => judge(&args[2]),
+        Some("prefix") => prefix(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(10_000)),
         Some("subst") => subst(
             args.get(2).map(String::as_str).unwrap_or("data"),
             args.get(3)

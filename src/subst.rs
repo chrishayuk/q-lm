@@ -22,7 +22,7 @@
 use std::collections::HashMap;
 
 pub struct Subst {
-    words: HashMap<String, u32>,
+    pub words: HashMap<String, u32>,
     pub word_list: Vec<String>,
     /// Category of each word (where a one-word member exists).
     pub lexical: HashMap<u32, Vec<(u32, f64)>>, // word → [(category, P(cat → word))]
@@ -286,7 +286,9 @@ impl Subst {
         }
     }
 
-    fn inside(&self, ws: &[u32]) -> Vec<Vec<HashMap<u32, f64>>> {
+    /// The inside chart of a sentence (as word ids): chart[i][j] maps a
+    /// category to the probability that it derives words i..j.
+    pub fn inside(&self, ws: &[u32]) -> Vec<Vec<HashMap<u32, f64>>> {
         let n = ws.len();
         let mut chart: Vec<Vec<HashMap<u32, f64>>> = vec![vec![HashMap::new(); n + 1]; n + 1];
         for i in 0..n {
@@ -315,6 +317,45 @@ impl Subst {
             }
         }
         chart
+    }
+
+    /// The probability that a derivation from the start category finishes:
+    /// the least fixed point of q(A) = Σ P(A → rhs) · Π q(children), with
+    /// q(word) = 1, found by iterating from 0.
+    pub fn termination(&self) -> f64 {
+        self.termination_all()[&self.start]
+    }
+
+    /// The probability that a derivation from each category finishes.
+    pub fn termination_all(&self) -> HashMap<u32, f64> {
+        let mut q: HashMap<u32, f64> = self.rules.keys().map(|&a| (a, 0.0)).collect();
+        for _ in 0..10_000 {
+            let mut change: f64 = 0.0;
+            let next: HashMap<u32, f64> = self
+                .rules
+                .iter()
+                .map(|(&a, rs)| {
+                    let v: f64 = rs
+                        .iter()
+                        .map(|(rhs, p)| match rhs {
+                            Rhs::Word(_) => *p,
+                            Rhs::Pair(b, c) => p * q[b] * q[c],
+                        })
+                        .sum();
+                    change = change.max((v - q[&a]).abs());
+                    (a, v)
+                })
+                .collect();
+            q = next;
+            if change < 1e-12 {
+                break;
+            }
+        }
+        q
+    }
+
+    pub fn word_id(&self, w: &str) -> Option<u32> {
+        self.words.get(w).copied()
     }
 
     pub fn size(&self) -> usize {
