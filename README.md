@@ -75,7 +75,10 @@ narrows the depth gap to the grammar to almost nothing at full size, is
 [docs/results-architectures.md](docs/results-architectures.md). QLM-005,
 three generated languages, is [docs/results-qlm005.md](docs/results-qlm005.md).
 Which part of the transformer carries depth (rotary positions) is
-[docs/results-qlm-arch-001.md](docs/results-qlm-arch-001.md).
+[docs/results-qlm-arch-001.md](docs/results-qlm-arch-001.md). Facts and
+relations (the grammar learner fails; transformers transfer phrasings and
+Llama composes, but neither reverses) are
+[docs/results-qlm-semantic-001.md](docs/results-qlm-semantic-001.md).
 
 ## Direction
 
