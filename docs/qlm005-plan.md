@@ -121,3 +121,17 @@ For each family, size and model:
      sentences derivable.
 
 The confirmation sets are not read.
+
+## Changes after results existed
+
+1. **A Llama arm is added to every family.** It runs on 3 seeds at the same
+   four sizes, as `ARCH=llama transformer/train.py`.
+   - **When.** Decided after the right family's results were seen, and
+     before the centre and left families finished.
+   - **Why.** On Colmerauer's language, a Llama model of the same size
+     nearly closes the depth gap that the custom transformer showed
+     (results-architectures.md). A comparison with one transformer
+     architecture is not a comparison with transformers.
+   - **How it is reported.** The custom transformer stays as planned. The
+     plan's criteria apply to it. The Llama arm is reported beside it, under
+     the same criteria, labelled as added.
