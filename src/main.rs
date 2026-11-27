@@ -1437,6 +1437,29 @@ fn scale(dir: &str, n: usize) {
     );
 }
 
+/// Natural-language baselines: Kneser–Ney n-grams of orders 1, 2, 3 and 5 on
+/// the first n training sentences, scored on the first 2,000 development
+/// sentences (bits per token, END included).
+fn baselines(dir: &str) {
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let dev = &dev[..2000.min(dev.len())];
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    println!("| training sentences | unigram | bigram | trigram | 5-gram |");
+    println!("|---:|---:|---:|---:|---:|");
+    for n in [1_000usize, 10_000, 100_000, train.len()] {
+        let sub = &train[..n.min(train.len())];
+        let cells: Vec<String> = [1usize, 2, 3, 5]
+            .iter()
+            .map(|&o| {
+                let m = KneserNey::train(sub, &vocab, o, 0.75);
+                format!("{:.4}", per_token(dev, |prefix: &[String], t: &str| m.p(prefix, t)))
+            })
+            .collect();
+        println!("| {} | {} |", sub.len(), cells.join(" | "));
+    }
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1536,6 +1559,7 @@ fn main() {
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
+        Some("baselines") => baselines(&args[2]),
         Some("scale") => scale(&args[2], args[3].parse().unwrap()),
         Some("equiv") => equiv(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("negatives") => negatives(&args[2]),

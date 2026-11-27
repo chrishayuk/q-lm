@@ -33,10 +33,13 @@ estimation. Table: [tables/scale-001-tinystories.md](tables/scale-001-tinystorie
   - In the synthetic languages, a few thousand sentences were enough for
     the grammar to collapse to tens of categories. Here it never begins
     to.
-- **So the model grows with the text, faster than linearly.** Rules: 0.58
+- **So the model grows with the text, about linearly.** Rules: 0.58
   million at 1,000 sentences, 5.6 million at 10,000, 49 million at
-  100,000. The opposite of kind 1's result, where the grammar stopped
-  growing.
+  100,000. That is 9.6× and then 8.7× per tenfold. (A first draft said
+  "faster than linearly"; the measured growth is roughly linear.) The
+  problem is that it grows at all, with no consolidation, from an enormous
+  constant. That is the opposite of kind 1's result, where the grammar
+  stopped growing.
 - **Nothing generalises.**
   - At 100 and 300 sentences, development bits are 13.7 per token. That is
     the floor: uniform over 10,952 words is 13.4 bits.
