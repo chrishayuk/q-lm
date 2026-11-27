@@ -139,3 +139,25 @@ grammatical if every sentence fits a phrasing.
 - **It generalises** a test if its accuracy there is above 50% and its
   contrast above 1 bit.
 - **Chance** is 1/24 for cities and countries, and 1/4 for continents.
+
+## Changes after a first result
+
+1. **Composition and new-entity people are held out by city.**
+   - **The evidence.** On world 1, the converged grammar scored 11 of 12 on
+     composition (contrast 14.8 bits). 11 of the 12 held-out people had a
+     city-mate (every city has two residents) whose `lives-on` statement
+     was in training. Substitution merges people who share contexts such
+     as `_ lives in K .`, so a held-out person inherited the city-mate's
+     continent. That is a shortcut through a similar entity, not
+     composition through the relations.
+   - **The change.** Composition holds out both residents of 2 cities per
+     continent: 16 people, 4 per continent. New entity holds out both
+     residents of 2 further cities: 4 people. No held-out person has a
+     city-mate whose answer is in training.
+   - **When.** Made before any transformer was trained on these worlds. The
+     first world-1 result is kept below, as the record of the shortcut.
+
+   | model (world 1, first design) | composition accuracy | contrast |
+   |---|---:|---:|
+   | grammar, 20 rounds | 11 of 12 | 14.75 |
+   | Kneser–Ney 3-gram | 3 of 12 (chance) | −0.02 |

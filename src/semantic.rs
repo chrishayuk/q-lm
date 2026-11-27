@@ -1,0 +1,263 @@
+//! QLM-SEMANTIC-001: a world of facts and the text that states them. See
+//! docs/qlm-semantic-001-plan.md.
+//!
+//! The names are fixed (seed 1000). The world seed assigns the facts, so
+//! worlds with different seeds are entity-permuted copies of one another.
+
+use qsystems::lm::Rng;
+use std::collections::BTreeSet;
+
+pub const COUNTRIES: usize = 24;
+pub const CONTINENTS: usize = 4;
+pub const PEOPLE: usize = 48;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Rel {
+    Capital,
+    Located,
+    Continent,
+    Lives,
+    LivesOn,
+}
+
+/// One statement: a relation, its subject and object (indices into their
+/// type's names), and which phrasing (0 or 1; lives-on has only 0).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Statement {
+    pub rel: Rel,
+    pub subject: usize,
+    pub object: usize,
+    pub phrasing: usize,
+}
+
+pub struct World {
+    pub countries: Vec<String>,
+    pub cities: Vec<String>,
+    pub continents: Vec<String>,
+    pub people: Vec<String>,
+    /// capital[country] = city; continent[country]; lives[person] = city.
+    pub capital: Vec<usize>,
+    pub continent: Vec<usize>,
+    pub lives: Vec<usize>,
+    /// Held out: countries whose second capital phrasing is withheld;
+    /// countries whose located statements are withheld; people whose
+    /// lives-on statements are withheld; people seen in one lives statement
+    /// only (and no lives-on).
+    pub held_phrasing: BTreeSet<usize>,
+    pub held_inverse: BTreeSet<usize>,
+    pub held_composition: BTreeSet<usize>,
+    pub held_new: BTreeSet<usize>,
+}
+
+fn shuffle<T>(v: &mut [T], r: &mut Rng) {
+    for i in (1..v.len()).rev() {
+        let j = (r.draw() as usize) % (i + 1);
+        v.swap(i, j);
+    }
+}
+
+fn names(n: usize, r: &mut Rng, used: &mut BTreeSet<String>) -> Vec<String> {
+    let cons = b"bdfgklmnprstvz";
+    let vows = b"aeiou";
+    let mut out = Vec::new();
+    while out.len() < n {
+        let mut w = String::new();
+        for _ in 0..3 {
+            w.push(cons[(r.draw() as usize) % cons.len()] as char);
+            w.push(vows[(r.draw() as usize) % vows.len()] as char);
+        }
+        if used.insert(w.clone()) {
+            out.push(w);
+        }
+    }
+    out
+}
+
+impl World {
+    pub fn new(seed: u64) -> World {
+        let mut nr = Rng(1000);
+        let mut used: BTreeSet<String> =
+            ["has", "capital", "the", "of", "is", "located", "in", "a", "city", "lies", "on", "lives", "from"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect();
+        let countries = names(COUNTRIES, &mut nr, &mut used);
+        let cities = names(COUNTRIES, &mut nr, &mut used);
+        let continents = names(CONTINENTS, &mut nr, &mut used);
+        let people = names(PEOPLE, &mut nr, &mut used);
+        let mut r = Rng(seed.wrapping_mul(0x2545_F491_4F6C_DD1D) ^ 0x5EED);
+        // Facts, balanced: 6 countries per continent, 2 people per city.
+        let mut capital: Vec<usize> = (0..COUNTRIES).collect();
+        shuffle(&mut capital, &mut r);
+        let mut order: Vec<usize> = (0..COUNTRIES).collect();
+        shuffle(&mut order, &mut r);
+        let mut continent = vec![0; COUNTRIES];
+        for (k, &c) in order.iter().enumerate() {
+            continent[c] = k / (COUNTRIES / CONTINENTS);
+        }
+        let mut porder: Vec<usize> = (0..PEOPLE).collect();
+        shuffle(&mut porder, &mut r);
+        let mut lives = vec![0; PEOPLE];
+        for (k, &p) in porder.iter().enumerate() {
+            lives[p] = k / 2;
+        }
+        // Held out, disjoint. Phrasing and inverse: 6 countries each.
+        let mut cs: Vec<usize> = (0..COUNTRIES).collect();
+        shuffle(&mut cs, &mut r);
+        let held_phrasing: BTreeSet<usize> = cs[..6].iter().copied().collect();
+        let held_inverse: BTreeSet<usize> = cs[6..12].iter().copied().collect();
+        // Composition and new entity are held out by city, both residents
+        // together, so that no city-mate's statement gives the answer away
+        // (a change after a first result: docs/qlm-semantic-001-plan.md).
+        // Composition: the residents of 2 cities per continent (16 people).
+        // New entity: the residents of 2 further cities (4 people).
+        let mut cities_by_cont: Vec<Vec<usize>> = vec![Vec::new(); CONTINENTS];
+        let mut order_c: Vec<usize> = (0..COUNTRIES).collect();
+        shuffle(&mut order_c, &mut r);
+        for &c in &order_c {
+            cities_by_cont[continent[c]].push(capital[c]);
+        }
+        let comp_cities: BTreeSet<usize> = cities_by_cont.iter().flat_map(|v| v[..2].iter().copied()).collect();
+        let new_cities: BTreeSet<usize> = order_c.iter().map(|&c| capital[c]).filter(|k| !comp_cities.contains(k)).take(2).collect();
+        let held_composition: BTreeSet<usize> = (0..PEOPLE).filter(|p| comp_cities.contains(&lives[*p])).collect();
+        let held_new: BTreeSet<usize> = (0..PEOPLE).filter(|p| new_cities.contains(&lives[*p])).collect();
+        World { countries, cities, continents, people, capital, continent, lives, held_phrasing, held_inverse, held_composition, held_new }
+    }
+
+    /// The country whose capital is `city`.
+    pub fn country_of(&self, city: usize) -> usize {
+        self.capital.iter().position(|&k| k == city).unwrap()
+    }
+
+    /// The continent a person lives on: lives, then located, then continent.
+    pub fn lives_on(&self, person: usize) -> usize {
+        self.continent[self.country_of(self.lives[person])]
+    }
+
+    pub fn render(&self, s: &Statement) -> String {
+        let (c, k, t, p) = (&self.countries, &self.cities, &self.continents, &self.people);
+        match (s.rel, s.phrasing) {
+            (Rel::Capital, 0) => format!("{} has capital {} .", c[s.subject], k[s.object]),
+            (Rel::Capital, _) => format!("the capital of {} is {} .", c[s.subject], k[s.object]),
+            (Rel::Located, 0) => format!("{} is located in {} .", k[s.subject], c[s.object]),
+            (Rel::Located, _) => format!("{} is a city of {} .", k[s.subject], c[s.object]),
+            (Rel::Continent, 0) => format!("{} is in {} .", c[s.subject], t[s.object]),
+            (Rel::Continent, _) => format!("{} lies on {} .", c[s.subject], t[s.object]),
+            (Rel::Lives, 0) => format!("{} lives in {} .", p[s.subject], k[s.object]),
+            (Rel::Lives, _) => format!("{} is from {} .", p[s.subject], k[s.object]),
+            (Rel::LivesOn, _) => format!("{} lives on {} .", p[s.subject], t[s.object]),
+        }
+    }
+
+    /// Whether a statement may appear in training.
+    pub fn allowed(&self, s: &Statement) -> bool {
+        match s.rel {
+            Rel::Capital => !(s.phrasing == 1 && self.held_phrasing.contains(&s.subject)),
+            Rel::Located => !self.held_inverse.contains(&self.country_of(s.subject)),
+            Rel::Continent => true,
+            // A new-entity person keeps only the first lives phrasing.
+            Rel::Lives => !(s.phrasing == 1 && self.held_new.contains(&s.subject)),
+            Rel::LivesOn => !self.held_composition.contains(&s.subject) && !self.held_new.contains(&s.subject),
+        }
+    }
+
+    fn st(rel: Rel, subject: usize, object: usize, r: &mut Rng) -> Statement {
+        let phrasing = if rel == Rel::LivesOn { 0 } else { (r.draw() % 2) as usize };
+        Statement { rel, subject, object, phrasing }
+    }
+
+    /// A random text of one to three true statements, every one allowed.
+    /// A new-entity person appears in no random text: their one lives
+    /// statement is added once, by `corpus`. A held-out composition
+    /// person's name never shares a text with their continent's name.
+    pub fn text(&self, r: &mut Rng) -> Vec<Statement> {
+        loop {
+            let kind = r.draw() % 10;
+            let c = (r.draw() as usize) % COUNTRIES;
+            let p = (r.draw() as usize) % PEOPLE;
+            let k = self.capital[c];
+            let t = self.continent[c];
+            let text: Vec<Statement> = match kind {
+                0 => vec![World::st(Rel::Capital, c, k, r)],
+                1 => vec![World::st(Rel::Located, k, c, r)],
+                2 => vec![World::st(Rel::Continent, c, t, r)],
+                3 => vec![World::st(Rel::Lives, p, self.lives[p], r)],
+                4 => vec![World::st(Rel::LivesOn, p, self.lives_on(p), r)],
+                5 => vec![World::st(Rel::Capital, c, k, r), World::st(Rel::Continent, c, t, r)],
+                6 => vec![World::st(Rel::Located, k, c, r), World::st(Rel::Continent, c, t, r)],
+                7 => {
+                    let k = self.lives[p];
+                    let c = self.country_of(k);
+                    vec![World::st(Rel::Lives, p, k, r), World::st(Rel::Located, k, c, r), World::st(Rel::Continent, c, self.continent[c], r)]
+                }
+                8 => vec![World::st(Rel::Lives, p, self.lives[p], r), World::st(Rel::LivesOn, p, self.lives_on(p), r)],
+                _ => {
+                    let k = self.lives[p];
+                    vec![World::st(Rel::Lives, p, k, r), World::st(Rel::Located, k, self.country_of(k), r)]
+                }
+            };
+            let people_in: Vec<usize> = text
+                .iter()
+                .filter(|s| matches!(s.rel, Rel::Lives | Rel::LivesOn))
+                .map(|s| s.subject)
+                .collect();
+            if people_in.iter().any(|q| self.held_new.contains(q)) {
+                continue;
+            }
+            let continents_in: BTreeSet<usize> = text
+                .iter()
+                .filter(|s| matches!(s.rel, Rel::Continent | Rel::LivesOn))
+                .map(|s| s.object)
+                .collect();
+            if people_in.iter().any(|q| self.held_composition.contains(q) && continents_in.contains(&self.lives_on(*q))) {
+                continue;
+            }
+            if text.iter().all(|s| self.allowed(s)) {
+                return text;
+            }
+        }
+    }
+
+    pub fn line(&self, text: &[Statement]) -> String {
+        text.iter().map(|s| self.render(s)).collect::<Vec<_>>().join(" ")
+    }
+
+    /// `n` training texts, then the one lives statement of each new-entity
+    /// person.
+    pub fn corpus(&self, n: usize, r: &mut Rng) -> Vec<String> {
+        let mut out: Vec<String> = (0..n).map(|_| self.line(&self.text(r))).collect();
+        for &p in &self.held_new {
+            out.push(self.render(&Statement { rel: Rel::Lives, subject: p, object: self.lives[p], phrasing: 0 }));
+        }
+        out
+    }
+
+    /// The test items: (test, prefix, answer, type of the answer). Seen
+    /// facts are included as the control.
+    pub fn tests(&self) -> Vec<(String, String, String, String)> {
+        let mut t = Vec::new();
+        let (c, k, tt, p) = (&self.countries, &self.cities, &self.continents, &self.people);
+        for x in 0..COUNTRIES {
+            let cap = &k[self.capital[x]];
+            let phr = if self.held_phrasing.contains(&x) { "phrasing" } else { "seen" };
+            t.push((phr.into(), format!("the capital of {} is", c[x]), cap.clone(), "city".into()));
+            if !self.held_phrasing.contains(&x) {
+                t.push(("seen".into(), format!("{} has capital", c[x]), cap.clone(), "city".into()));
+            }
+            let inv = if self.held_inverse.contains(&x) { "inverse" } else { "seen" };
+            t.push((inv.into(), format!("{cap} is located in"), c[x].clone(), "country".into()));
+            t.push((inv.into(), format!("{cap} is a city of"), c[x].clone(), "country".into()));
+        }
+        for q in 0..PEOPLE {
+            let test = if self.held_composition.contains(&q) {
+                "composition"
+            } else if self.held_new.contains(&q) {
+                "new entity"
+            } else {
+                "seen"
+            };
+            t.push((test.into(), format!("{} lives on", p[q]), tt[self.lives_on(q)].clone(), "continent".into()));
+        }
+        t
+    }
+}

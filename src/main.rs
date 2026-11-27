@@ -1020,6 +1020,134 @@ fn negatives(dir: &str) {
     println!("{dir}: negative-dev.txt and negative-confirm.txt, {SAMPLES} each");
 }
 
+/// QLM-SEMANTIC-001: a world and its text, written as `data` writes a
+/// language: 20,000 training texts, 2,000 development, 2,000 confirmation,
+/// the held-out statements as deep.txt (and deep-seen.txt, for the
+/// transformer scripts), and the fact tests as tests.tsv.
+fn semantic_data(dir: &str, seed: u64) {
+    use q_lm::semantic::{Rel, Statement, World};
+    let w = World::new(seed);
+    fs::create_dir_all(dir).unwrap();
+    let mut r = Rng(seed * 1000 + 1);
+    let train = w.corpus(20_000, &mut r);
+    let dev: Vec<String> = (0..2_000).map(|_| w.line(&w.text(&mut r))).collect();
+    let confirm: Vec<String> = (0..2_000).map(|_| w.line(&w.text(&mut r))).collect();
+    write(&format!("{dir}/train.txt"), train.iter().cloned());
+    for n in sizes(train.len()) {
+        write(&format!("{dir}/train-{n}.txt"), train.iter().take(n).cloned());
+    }
+    write(&format!("{dir}/dev.txt"), dev.into_iter());
+    write(&format!("{dir}/confirm.txt"), confirm.into_iter());
+    // Every held-out statement, rendered.
+    let mut held: Vec<String> = Vec::new();
+    for c in 0..q_lm::semantic::COUNTRIES {
+        let k = w.capital[c];
+        for ph in 0..2 {
+            for st in [Statement { rel: Rel::Capital, subject: c, object: k, phrasing: ph }, Statement { rel: Rel::Located, subject: k, object: c, phrasing: ph }] {
+                if !w.allowed(&st) {
+                    held.push(w.render(&st));
+                }
+            }
+        }
+    }
+    for p in 0..q_lm::semantic::PEOPLE {
+        let st = Statement { rel: Rel::LivesOn, subject: p, object: w.lives_on(p), phrasing: 0 };
+        if !w.allowed(&st) {
+            held.push(w.render(&st));
+        }
+    }
+    write(&format!("{dir}/deep.txt"), held.iter().cloned());
+    write(&format!("{dir}/deep-seen.txt"), held.iter().cloned());
+    let words: BTreeSet<String> = train.iter().chain(held.iter()).flat_map(|l| l.split(' ').map(String::from)).collect();
+    write(&format!("{dir}/vocab.txt"), words.iter().cloned());
+    let tests = w.tests();
+    write(&format!("{dir}/tests.tsv"), tests.iter().map(|(a, b, c, d)| format!("{a}\t{b}\t{c}\t{d}")));
+    let types = [("city", &w.cities), ("country", &w.countries), ("continent", &w.continents)];
+    write(&format!("{dir}/types.tsv"), types.iter().map(|(t, ns)| format!("{t}\t{}", ns.join(" "))));
+    let mut facts = format!("world seed {seed}\n");
+    for c in 0..q_lm::semantic::COUNTRIES {
+        facts += &format!("{} capital {} continent {}\n", w.countries[c], w.cities[w.capital[c]], w.continents[w.continent[c]]);
+    }
+    for p in 0..q_lm::semantic::PEOPLE {
+        facts += &format!("{} lives {} on {}\n", w.people[p], w.cities[w.lives[p]], w.continents[w.lives_on(p)]);
+    }
+    fs::write(format!("{dir}/world.txt"), facts).unwrap();
+    let mut by: std::collections::BTreeMap<&str, usize> = Default::default();
+    for t in &tests {
+        *by.entry(t.0.as_str()).or_insert(0) += 1;
+    }
+    println!("world {seed}: {} training texts, {} words, {} held-out statements; tests {by:?}", train.len(), words.len(), held.len());
+}
+
+/// QLM-SEMANTIC-001: the fact tests, for the learned grammar (20 rounds) and
+/// the Kneser–Ney shortcut baselines, trained on n texts.
+fn facts(dir: &str, n: usize) {
+    use q_lm::prefix::Prefix;
+    use q_lm::subst::Subst;
+    use std::collections::BTreeMap;
+    let train = read(&format!("{dir}/train.txt"));
+    let sub = &train[..n.min(train.len())];
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let types: HashMap<String, Vec<String>> = fs::read_to_string(format!("{dir}/types.tsv"))
+        .unwrap()
+        .lines()
+        .map(|l| {
+            let (t, ns) = l.split_once('\t').unwrap();
+            (t.to_string(), ns.split(' ').map(String::from).collect())
+        })
+        .collect();
+    let tests: Vec<Vec<String>> = fs::read_to_string(format!("{dir}/tests.tsv")).unwrap().lines().map(|l| l.split('\t').map(String::from).collect()).collect();
+    // Scores each test with next(prefix) -> word -> probability.
+    let score = |name: &str, next: &mut dyn FnMut(&[String]) -> HashMap<String, f64>| {
+        let mut agg: BTreeMap<String, (usize, usize, f64, f64)> = BTreeMap::new();
+        for t in &tests {
+            let prefix: Vec<String> = t[1].split(' ').map(String::from).collect();
+            let d = next(&prefix);
+            let z: f64 = d.values().sum();
+            let cands = &types[&t[3]];
+            // The usual floor: 0.999 of the model, 0.001 uniform. A prefix
+            // the model cannot continue gets only the floor.
+            let u = 0.001 / (vocab.len() as f64 + 1.0);
+            let p = |w: &String| u + if z > 0.0 { 0.999 * d.get(w).copied().unwrap_or(0.0) / z } else { 0.0 };
+            let truth = p(&t[2]).max(1e-300);
+            let best = cands.iter().max_by(|a, b| p(a).partial_cmp(&p(b)).unwrap()).unwrap();
+            let false_mean = cands.iter().filter(|w| **w != t[2]).map(p).sum::<f64>() / (cands.len() - 1) as f64;
+            let e = agg.entry(t[0].clone()).or_insert((0, 0, 0.0, 0.0));
+            e.0 += 1;
+            e.1 += (*best == t[2] && p(best) > u) as usize;
+            e.2 -= truth.log2();
+            e.3 += truth.log2() - false_mean.max(1e-300).log2();
+        }
+        for (test, (count, right, bits, contrast)) in agg {
+            println!("| {name} | {test} | {count} | {right} | {:.1}% | {:.2} | {:.2} |", 100.0 * right as f64 / count as f64, bits / count as f64, contrast / count as f64);
+        }
+    };
+    println!("{} training texts; every probability floored (0.999 model + 0.001 uniform)\n", sub.len());
+    println!("| model | test | items | answer ranked first | accuracy | bits on the answer | contrast, bits |");
+    println!("|---|---|---:|---:|---:|---:|---:|");
+    for order in [2, 3] {
+        let m = KneserNey::train(sub, &vocab, order, 0.75);
+        let mut next = |prefix: &[String]| -> HashMap<String, f64> { vocab.iter().map(|w| (w.clone(), m.p(prefix, w))).collect() };
+        score(&format!("Kneser–Ney {order}-gram (shortcut baseline)"), &mut next);
+    }
+    let t = Instant::now();
+    let mut g = Subst::train(sub, &vocab);
+    g.em(sub, 20, 1e-3);
+    eprintln!("grammar: {} categories, {} rules, {:.1} s", g.categories, g.size(), t.elapsed().as_secs_f64());
+    let pf = Prefix::new(&g);
+    let mut next = |prefix: &[String]| -> HashMap<String, f64> {
+        let mut r = pf.start();
+        for w in prefix {
+            match g.word_id(w) {
+                Some(id) => pf.step(&mut r, id),
+                None => return HashMap::new(),
+            }
+        }
+        pf.next(&r).into_iter().collect()
+    };
+    score(&format!("grammar, 20 rounds ({} categories, {} rules)", g.categories, g.size()), &mut next);
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1115,6 +1243,8 @@ fn main() {
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
         Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
+        Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap()),
+        Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),

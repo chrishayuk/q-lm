@@ -19,6 +19,7 @@ pub mod family;
 pub mod ktails;
 pub mod ngram;
 pub mod prefix;
+pub mod semantic;
 pub mod subst;
 
 use qsystems::lm::Rng;
