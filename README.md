@@ -96,6 +96,10 @@ How the learner's cost grows (the model stops growing; its bookkeeping
 does not): [docs/results-qlm-scale-001-kind1.md](docs/results-qlm-scale-001-kind1.md).
 On TinyStories it breaks (whole-sentence contexts never recur; nothing
 merges): [docs/results-qlm-scale-001-tinystories.md](docs/results-qlm-scale-001-tinystories.md).
+Q-LM v2 on TinyStories: bounded-context classes beat the 5-gram, and the
+transformer with little data ([docs/results-qlm-v2-e1-e3.md](docs/results-qlm-v2-e1-e3.md));
+abstractions-as-contexts (E4) add nothing beyond ensembling
+([docs/results-qlm-v2-e4.md](docs/results-qlm-v2-e4.md)).
 
 ## Direction
 
