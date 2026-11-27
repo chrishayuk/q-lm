@@ -822,7 +822,9 @@ fn compare(dir: &str) {
             .unwrap()
             .flatten()
             .map(|e| e.file_name().to_string_lossy().to_string())
-            .filter(|f| f.starts_with(&format!("transformer-{n}-")) && f.ends_with(".bits"))
+            .filter(|f| {
+                ["transformer", "llama", "gpt2"].iter().any(|a| f.starts_with(&format!("{a}-{n}-"))) && f.ends_with(".bits")
+            })
             .collect();
         files.sort();
         for f in files {
@@ -832,10 +834,26 @@ fn compare(dir: &str) {
             let samples = read(&format!("{dir}/{model}.samples"));
             let j = judge_all(&judge, &samples, &sub_set);
             println!(
-                "| {model} | | 832,023 weights | {:.4} | {:.4} | {:.4} | | | | {} of {SAMPLES} | {} | {} | |",
+                "| {model} | | {} weights | {:.4} | {:.4} | {:.4} | | | | {} of {SAMPLES} | {} | {} | |",
+                text.split_whitespace().find_map(|t| t.strip_prefix("params=")).unwrap_or("?"),
                 x[0], x[1], x[2], j.grammatical, j.novel_grammatical, j.deep_grammatical
             );
         }
+    }
+}
+
+/// Bits per token of the grammar learned from n sentences after `rounds`
+/// of inside–outside, on each file given (one sentence per line).
+fn score(dir: &str, n: usize, rounds: usize, files: &[String]) {
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let v = vocab.len() as f64 + 1.0;
+    let mut m = Subst::train(&train[..n], &vocab);
+    m.em(&train[..n], rounds, 1e-3);
+    for f in files {
+        let set = read(f);
+        println!("{f}: {} sentences, {:.4} bits/token", set.len(), floored(&m, &set, v));
     }
 }
 
@@ -933,6 +951,7 @@ fn main() {
         Some("judge") => judge(&args[2]),
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
+        Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("mdl") => mdl(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("prefix") => prefix(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(10_000)),

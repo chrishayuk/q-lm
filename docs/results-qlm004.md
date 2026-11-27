@@ -1,5 +1,11 @@
 # Results: inside–outside convergence, QLM-004 (pruning), QLM-PERF-001
 
+> **Later correction.** The transformer here is the custom model of
+> `transformer/train.py`. A Llama-architecture model of the same size is
+> nearly level with the converged grammar on deeper sentences at full size
+> (2.39 to 2.97 bits against 2.37), and better on the corpus. See
+> [results-architectures.md](results-architectures.md).
+
 This continues [results.md](results.md) and corrects part of it.
 
 **The correction.** results.md scored the learned grammar after five rounds

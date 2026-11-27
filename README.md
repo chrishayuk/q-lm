@@ -70,7 +70,9 @@ The first run, kept as the baseline, is
 [docs/results-run1.md](docs/results-run1.md). QLM-002, which corrects it,
 is [docs/results.md](docs/results.md). Inside–outside convergence,
 rule pruning (QLM-004) and matched inference cost (QLM-PERF-001) are
-[docs/results-qlm004.md](docs/results-qlm004.md).
+[docs/results-qlm004.md](docs/results-qlm004.md). The Llama arm, which
+narrows the depth gap to the grammar to almost nothing at full size, is
+[docs/results-architectures.md](docs/results-architectures.md).
 
 ## Direction
 
