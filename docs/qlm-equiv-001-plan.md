@@ -111,3 +111,11 @@ score with a more faithful structure is still a finding.
 
    It is chosen within the arm by the shortest description, as B and C
    are.
+
+4. **Order.** On the same 1,000 left-family sentences, in their own order
+   and shuffled, canonical grammar fingerprints (each category by its
+   sorted members, rules over those names) are identical for arm A and for
+   C′ at θ = 0.05, 0.1 and 0.25. They differ for B (k = 2), C (all three)
+   and C′ (θ = 0.5). Those differences come from the first-substring
+   fallback for contexts with more than 200 distinct substrings, which
+   depends on order.

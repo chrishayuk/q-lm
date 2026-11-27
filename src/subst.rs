@@ -101,7 +101,9 @@ impl Subst {
     /// merged with each other in any case.
     pub fn train_rule(sentences: &[Vec<String>], vocab: &[String], rule: MergeRule) -> Subst {
         if rule == MergeRule::Single {
-            return Subst::train(sentences, vocab);
+            // Logged, so that the substring table is kept (for fingerprints).
+            let mut log = Vec::new();
+            return Subst::train_logged(sentences, vocab, Some(&mut log));
         }
         let mut words: HashMap<String, u32> = HashMap::new();
         for w in vocab {

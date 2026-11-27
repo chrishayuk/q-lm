@@ -52,4 +52,38 @@ Principles, each with what would test it:
   Memberships are unary edges, so it needs the unary closure the plan
   already names.
 
+## Revisions to the draft
+
+- **Storing, promoting and computing are separate.**
+  - Every observation is stored, including phrases seen once.
+  - Promotion into a reusable node needs a recurrence of at least r, where
+    r is a setting tested at 1, 2 and 3, not a rule.
+  - Computing uses only what the current input activates. One-shot
+    understanding has to stay possible.
+- **Branching entropy is evidence, not a gate.** It weights a candidate
+  node's promotion score beside its recurrence. It does not decide alone.
+- **Sparsity is tested, not fixed:** m = 1, 2, 4, 8 category memberships,
+  and an adaptive m. The adaptive m keeps a node's memberships until they
+  cover a fixed share (0.9) of its total membership weight.
+- **Memberships must depend on context.**
+  - Static Jaccard weights say how similar two strings are overall, not
+    whether they are interchangeable here.
+  - At parse time, a membership is used in a context only if the context
+    is among those that support it: the contexts its Jaccard weight was
+    built from, or contexts of the category's other members, matched to a
+    bounded width of k words on each side.
+  - This is the mechanism to build first.
+- **Stored graph against active graph.** The stored graph holds everything
+  learned. A sentence activates only the nodes its words reach and the
+  memberships its contexts support. Cost is measured on the active graph
+  (QLM-SCALE-001).
+- **Local estimation is checked first.** Stepwise EM is run beside batch
+  inside–outside on the 1,000-sentence grammars of all four languages. The
+  differences in development bits and in samples are reported before
+  stepwise EM is used anywhere else.
+- **Semantics shapes it from the start.** The first workload is not only
+  the four grammars but the version-3 semantic worlds, so that
+  identity-keeping is tested where it matters. Per-entity facts must
+  survive grouping.
+
 Not yet built. It is planned in full before it is.

@@ -1293,7 +1293,40 @@ fn equiv(dir: &str, n: usize) {
         let t = Instant::now();
         let mut m = Subst::train_rule(sub, &vocab, rule);
         let structure = t.elapsed().as_secs_f64();
-        eprintln!("{dir} {n} {arm} {rule:?}: {} categories, {} rules, structure in {structure:.1} s", m.categories, m.size());
+        // A canonical fingerprint of the partition and the rule set: each
+        // category named by its sorted members, rules over those names, so
+        // two runs agree only if their grammars are the same.
+        let fingerprint = {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut members: std::collections::BTreeMap<u32, Vec<Vec<u32>>> = Default::default();
+            for (w, &c) in &m.category_of {
+                members.entry(c).or_default().push(w.clone());
+            }
+            let mut name: HashMap<u32, Vec<Vec<u32>>> = HashMap::new();
+            for (c, mut ws) in members {
+                ws.sort();
+                name.insert(c, ws);
+            }
+            let mut cats: Vec<&Vec<Vec<u32>>> = name.values().collect();
+            cats.sort();
+            let mut rules: Vec<(Vec<Vec<u32>>, String)> = Vec::new();
+            for (a, rs) in &m.rules {
+                for (rhs, _) in rs {
+                    let r = match rhs {
+                        q_lm::subst::Rhs::Word(w) => format!("w{w}"),
+                        q_lm::subst::Rhs::Pair(b, c) => format!("{:?}|{:?}", name.get(b).map(|v| &v[0]), name.get(c).map(|v| &v[0])),
+                    };
+                    rules.push((name[a].clone(), r));
+                }
+            }
+            rules.sort();
+            let mut h = DefaultHasher::new();
+            cats.hash(&mut h);
+            rules.hash(&mut h);
+            h.finish()
+        };
+        eprintln!("{dir} {n} {arm} {rule:?}: {} categories, {} rules, fingerprint {fingerprint:016x}, structure in {structure:.1} s", m.categories, m.size());
         if m.size() > 60_000 {
             println!("| {arm} | {rule:?} | {} | {} | – | not estimated: over 60,000 rules | | | | | | | structure {structure:.1} s |", m.categories, m.size());
             continue;
