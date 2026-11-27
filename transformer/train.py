@@ -194,6 +194,29 @@ elif ARCH == "ablate":
             x = self.ln(x)
             return x @ self.tok.weight.T if self.out is None else self.out(x)
 
+elif ARCH == "mistralw":
+    # The Llama arm's shape with a sliding attention window (Mistral). With
+    # LAYERS layers and window W, each position sees LAYERS * (W - 1)
+    # earlier tokens: W = 2 and 4 layers give exactly the 4 previous
+    # tokens, a 5-gram's context, as a trained control for long context.
+    from transformers import MistralConfig, MistralForCausalLM
+
+    W = int(os.environ.get("WINDOW", "2"))
+    ARCH = f"mistralw{W}"
+
+    class Model(nn.Module):  # noqa: F811 (replaces the model above)
+        def __init__(self):
+            super().__init__()
+            cfg = MistralConfig(
+                vocab_size=len(vocab), hidden_size=D, intermediate_size=4 * D, num_hidden_layers=LAYERS,
+                num_attention_heads=HEADS, num_key_value_heads=HEADS, max_position_embeddings=MAX_LEN,
+                tie_word_embeddings=True, sliding_window=W, bos_token_id=BOS, eos_token_id=EOS, pad_token_id=PAD,
+            )
+            self.hf = MistralForCausalLM(cfg)
+
+        def forward(self, ids):
+            return self.hf(input_ids=ids).logits
+
 elif ARCH == "llama":
     from transformers import LlamaConfig, LlamaForCausalLM
 
@@ -294,7 +317,7 @@ with torch.no_grad():
         samples.append(" ".join(vocab[i] for i in ids[1:]))
 
 name = f"{DIR}/{ARCH}-{N}-s{SEED}"
-if ARCH in ("gpt2", "llama"):
+if ARCH in ("gpt2", "llama") or ARCH.startswith("mistralw"):
     from tokenizers import Tokenizer, models, pre_tokenizers
     from transformers import PreTrainedTokenizerFast
 
