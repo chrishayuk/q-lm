@@ -178,8 +178,13 @@ rng = random.Random(1)
 pairs = rng.sample([(c, c2) for c in COUNTRIES for c2 in COUNTRIES if c != c2], 120)
 
 
-def share(make_edits):
-    return sum(top_city(M.run(prompt(c2), make_edits(c, c2))[0]) == capital[c] for c, c2 in pairs) / len(pairs)
+# Heads are chosen on the first half of the pairs and judged on the second.
+select, judge = pairs[:60], pairs[60:]
+
+
+def share(make_edits, on=None):
+    on = pairs if on is None else on
+    return sum(top_city(M.run(prompt(c2), make_edits(c, c2))[0]) == capital[c] for c, c2 in on) / len(on)
 
 
 def rand_like(delta, seed):
@@ -202,28 +207,56 @@ for b in range(M.blocks):
     rr = share(lambda c, c2: [("in", b, CPOS, cache[c2][1]["in"][b][CPOS] + rand_like(cache[c][1]["in"][b][CPOS] - cache[c2][1]["in"][b][CPOS], hash((c, c2, b)) % 10**6))])
     print(f"| {b + 1} | {row[0]:.2f} | {row[1]:.2f} | {row[2]:.2f} | {rr:.2f} |")
 
-print("\n**2. Heads** (last position; patching one head's output from the donor: share where the donor's capital wins; attention weight from the last position to the country)\n")
+print("\n**2. Heads** (chosen on the first 60 pairs; the per-head table is over those 60; together and restoration are judged on the other 60. Last position; patching one head's output from the donor: share where the donor's capital wins; attention weight from the last position to the country)\n")
 print("| block | " + " | ".join(f"head {h}" for h in range(M.H)) + " |")
 print("|---:|" + "---:|" * M.H)
 scores = {}
 for b in range(M.blocks):
     cells = []
     for h in range(M.H):
-        s = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS])])
+        s = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS])], select)
         A = cache[COUNTRIES[0]][1]["A"][b]
         w = sum(cache[c][1]["A"][b][h, LPOS, CPOS].item() for c in COUNTRIES) / len(COUNTRIES) if A is not None else float("nan")
         scores[(b, h)] = s
         cells.append(f"{s:.2f} (w {w:.2f})")
     print(f"| {b + 1} | " + " | ".join(cells) + " |")
 best = sorted(scores, key=lambda k: -scores[k])[:3]
-together = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS]) for b, h in best])
+together = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS]) for b, h in best], judge)
 rheads = random.Random(7).sample([k for k in scores if k not in best], 3)
-rtogether = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS]) for b, h in rheads])
+rtogether = share(lambda c, c2: [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS]) for b, h in rheads], judge)
 print(f"\nTop three heads {[(b + 1, h) for b, h in best]} patched together: {together:.2f}. Three other heads {[(b + 1, h) for b, h in rheads]}: {rtogether:.2f}.\n")
 
+# Interactions: every nonempty subset of the three heads, on the judged
+# pairs: the share where the donor's capital wins, and the mean change in
+# log2 P(K) − log2 P(K').
+from itertools import combinations
+
+
+def effect(heads):
+    hit, d = 0, 0.0
+    for c, c2 in judge:
+        lp = M.run(prompt(c2), [("z", b, h, LPOS, cache[c][1]["z"][b][h, LPOS]) for b, h in heads])[0]
+        base = cache[c2][0]
+        k, k2 = ix[capital[c]], ix[capital[c2]]
+        hit += top_city(lp) == capital[c]
+        d += ((F.log_softmax(lp, -1)[k] - F.log_softmax(lp, -1)[k2]) - (F.log_softmax(base, -1)[k] - F.log_softmax(base, -1)[k2])).item() / math.log(2)
+    return hit / len(judge), d / len(judge)
+
+
+print("**2b. Interactions of the three heads** (judged pairs): share where the donor's capital wins; mean change in log2 P(donor's capital) − log2 P(own capital)\n")
+print("| heads | share | change, bits |")
+print("|---|---:|---:|")
+eff = {}
+for r in (1, 2, 3):
+    for sub in combinations(best, r):
+        eff[sub] = effect(sub)
+        print(f"| {', '.join(f'({b + 1},{h})' for b, h in sub)} | {eff[sub][0]:.2f} | {eff[sub][1]:+.2f} |")
+singles = sum(eff[(x,)][1] for x in best)
+print(f"\nSum of the single heads' changes: {singles:+.2f} bits; all three together: {eff[tuple(best)][1]:+.2f} bits.\n")
+
 print("**3. Restoration**: recipient corrupted to another country; only the top heads' outputs at the last position restored from the clean run. Share where the clean answer returns\n")
-rest = sum(top_city(M.run(prompt(c), [("z", b, h, LPOS, cache[c2][1]["z"][b][h, LPOS]) for b, h in best])[0]) == capital[c2] for c, c2 in pairs) / len(pairs)
-rrest = sum(top_city(M.run(prompt(c), [("z", b, h, LPOS, cache[c2][1]["z"][b][h, LPOS]) for b, h in rheads])[0]) == capital[c2] for c, c2 in pairs) / len(pairs)
+rest = sum(top_city(M.run(prompt(c), [("z", b, h, LPOS, cache[c2][1]["z"][b][h, LPOS]) for b, h in best])[0]) == capital[c2] for c, c2 in judge) / len(judge)
+rrest = sum(top_city(M.run(prompt(c), [("z", b, h, LPOS, cache[c2][1]["z"][b][h, LPOS]) for b, h in rheads])[0]) == capital[c2] for c, c2 in judge) / len(judge)
 print(f"Top heads restored: {rest:.2f}. Other heads restored: {rrest:.2f}.\n")
 
 print("**4. What the top heads carry** (their output at the last position, read through the output head: is the prompt's country, or its capital, the top of its type?)\n")

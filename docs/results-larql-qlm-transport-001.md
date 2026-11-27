@@ -107,3 +107,48 @@ So the picture is a lookup at the entity's position, then transport by a
 few attention heads to the answer position. Whether the lookup happens at
 the entity position is the next test. Patching the country position's
 feed-forward output in block 1 alone would show it.
+
+## Addendum: heads chosen on held-out pairs, and their interactions
+
+Full tables: [tables/transport-001-heldout.md](tables/transport-001-heldout.md).
+
+**Held-out selection.** Above, the top three heads were chosen and judged
+on the same 120 pairs. Now they are chosen on the first 60 and judged on
+the other 60:
+
+| | custom transformer | Llama |
+|---|---|---|
+| top three together: donor's capital wins | 0.39 (0.00 to 0.78), was 0.50 | 0.69 (0.17 to 0.97), was 0.73 |
+| three other heads | 0.04 | 0.00 |
+| restoration | 0.38 (0.00 to 0.85), was 0.49 | 0.70 (0.15 to 0.98), was 0.75 |
+| three other heads | 0.03 | 0.01 |
+| models passing | 4 of 9 | 8 of 9 |
+
+Selection on the judged pairs inflated the shares by 0.04 to 0.11. The
+pass counts are unchanged.
+
+**Interactions.** Every nonempty subset of the three heads was patched, on
+the judged pairs. The measure is the mean change in log2 P(donor's capital)
+− log2 P(own capital), with all three together compared against the sum
+of the three patched alone:
+
+| | sum of singles, bits | all three, bits | together ÷ sum, per model |
+|---|---:|---:|---|
+| custom transformer | +11.1 (1.2 to 17.7) | +11.7 (1.2 to 18.4) | 1.04, 1.06, 0.99, 1.09, 1.05, 1.06, 1.08, 1.03, 1.05 |
+| Llama | +12.6 (7.1 to 17.4) | +18.3 (10.4 to 23.2) | 1.58, 1.35, 1.57, 1.37, 1.20, 1.46, 1.60, 1.33, 1.79 |
+
+- **In the custom transformer the heads add.** Each head adds its share of
+  log-odds. The jump from 4% to 6% alone to 78% together, in the first
+  model inspected, is a threshold: only together do they push the donor's
+  capital past the recipient's.
+- **In Llama the heads interact.** Together they move the answer 1.2 to 1.8
+  times as far as the sum of their separate effects, in all 9 models.
+  - Its top heads are mostly in block 1, so they cannot read each other.
+    The superadditivity must come from later blocks combining their outputs
+    non-linearly.
+  - Which part of the later blocks does that is not tested.
+- For a circuit-level description, then:
+  - in the custom transformer, the three heads can be described one by
+    one, and their effects summed;
+  - in Llama they cannot. The unit is the heads together with what reads
+    them.
