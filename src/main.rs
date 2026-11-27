@@ -994,6 +994,32 @@ fn trace(dir: &str, n: usize) {
     println!("{accepted} of {} ungrammatical sentences derived.", negative.len());
 }
 
+/// QLM-EQUIV-001: fresh ungrammatical sentences, unseen by any analysis so
+/// far. 300 from development (seed 501), 300 from confirmation (seed 502).
+/// Two words of a sentence swapped, kept only if the judge rejects it.
+fn negatives(dir: &str) {
+    let judge = Judge::load(dir);
+    for (src, out, seed) in [("dev", "negative-dev", 501u64), ("confirm", "negative-confirm", 502)] {
+        let set = read(&format!("{dir}/{src}.txt"));
+        let mut rng = Rng(seed);
+        let mut neg: Vec<Sentence> = Vec::new();
+        let mut seen: BTreeSet<Sentence> = BTreeSet::new();
+        while neg.len() < SAMPLES {
+            let mut s = set[(rng.draw() as usize) % set.len()].clone();
+            let (a, b) = ((rng.draw() as usize) % s.len(), (rng.draw() as usize) % s.len());
+            if s[a] == s[b] {
+                continue;
+            }
+            s.swap(a, b);
+            if judge.depth(&s).is_none() && seen.insert(s.clone()) {
+                neg.push(s);
+            }
+        }
+        write(&format!("{dir}/{out}.txt"), neg.iter().map(|s| s.join(" ")));
+    }
+    println!("{dir}: negative-dev.txt and negative-confirm.txt, {SAMPLES} each");
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1089,6 +1115,7 @@ fn main() {
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
         Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
+        Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("mdl") => mdl(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
