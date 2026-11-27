@@ -353,8 +353,9 @@ def gate(models, n_prefixes=12):
     return worst, len(prefixes)
 
 
-# Every added component and every baseline class model (the 5-gram's
-# normalisation is checked in the Rust crate's own tests).
+# Every added component and every baseline class model. The 5-gram's
+# probabilities come precomputed for the observed tokens only (qlm knprobs),
+# so its normalisation is not yet gated here.
 gate_worst, gate_n = gate(list(models) + list(classes)) if os.environ.get("NO_GATE") != "1" else (float("nan"), 0)
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
 fit = range(0, 1000)
