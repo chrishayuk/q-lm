@@ -39,6 +39,9 @@ pub struct Subst {
     /// Expected count of each rule (lhs, b, c, lexical) on the training
     /// sentences, from the last E-step of `em`.
     pub expected: HashMap<(u32, u32, u32, bool), f64>,
+    /// The category of every training substring, for inspection (filled
+    /// by `train_logged` only).
+    pub category_of: HashMap<Vec<u32>, u32>,
 }
 
 #[derive(Clone, Debug)]
@@ -55,8 +58,24 @@ fn find(p: &mut [u32], mut x: u32) -> u32 {
     x
 }
 
+/// One union made while learning: two substrings found in the same context,
+/// whose categories were until then different.
+#[derive(Clone, Debug)]
+pub struct Merge {
+    pub a: Vec<u32>,
+    pub b: Vec<u32>,
+    pub left: Vec<u32>,
+    pub right: Vec<u32>,
+}
+
 impl Subst {
     pub fn train(sentences: &[Vec<String>], vocab: &[String]) -> Subst {
+        Subst::train_logged(sentences, vocab, None)
+    }
+
+    /// As `train`, recording every union in `log`, in the order made.
+    pub fn train_logged(sentences: &[Vec<String>], vocab: &[String], mut log: Option<&mut Vec<Merge>>) -> Subst {
+        let logging = log.is_some();
         let mut words: HashMap<String, u32> = HashMap::new();
         for w in vocab {
             let n = words.len() as u32;
@@ -89,6 +108,14 @@ impl Subst {
                             let (a, b) = (find(&mut parent, id), find(&mut parent, other));
                             if a != b {
                                 parent[a as usize] = b;
+                                if let Some(l) = log.as_deref_mut() {
+                                    l.push(Merge {
+                                        a: w.to_vec(),
+                                        b: strings[other as usize].to_vec(),
+                                        left: s[..i].to_vec(),
+                                        right: s[j..].to_vec(),
+                                    });
+                                }
                             }
                         }
                         None => {
@@ -182,6 +209,12 @@ impl Subst {
             examples,
             member_count,
             expected: HashMap::new(),
+            // Kept only when logging: it holds every training substring.
+            category_of: if logging {
+                ids.iter().map(|(w, &id)| (w.to_vec(), cat[id as usize])).collect()
+            } else {
+                HashMap::new()
+            },
         }
     }
 

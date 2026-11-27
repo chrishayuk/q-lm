@@ -272,9 +272,15 @@ impl Family {
     /// The judge: the least depth of any tree of the sentence, or None if
     /// the grammar does not derive it. CYK over the templates, binarised.
     pub fn depth(&self, s: &[String]) -> Option<usize> {
+        self.derivations(s).get(&Sym::S).copied()
+    }
+
+    /// Every symbol (S, X, E, word class) that derives the whole of `s`,
+    /// with the least depth at which it does: the true types of a string.
+    pub fn derivations(&self, s: &[String]) -> HashMap<Sym, usize> {
         let n = s.len();
         if n == 0 || n > 400 {
-            return None;
+            return HashMap::new();
         }
         let mut class_of: HashMap<&str, Vec<Sym>> = HashMap::new();
         for (name, ws) in &self.classes {
@@ -354,7 +360,9 @@ impl Family {
                 }
             }
         }
-        full[0][n].get(&Sym::S).copied()
+        let mut top = std::mem::take(&mut full[0][n]);
+        top.remove(&Sym::Sub);
+        top
     }
 
     /// The grammar, readable.

@@ -14,7 +14,7 @@ use q_lm::ngram::KneserNey;
 use q_lm::{analyse, bits, corpus, deep_sentences, depth, paraphrase, split, Sentence};
 use qsystems::lm::{Lm, Rng, END};
 use qsystems::open::{Model, Prior};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::time::Instant;
 
@@ -857,6 +857,143 @@ fn score(dir: &str, n: usize, rounds: usize, files: &[String]) {
     }
 }
 
+/// QLM-LEFT-001: where substitutability goes wrong on a family. Every
+/// substring is given its true type (the symbols of the generating grammar
+/// that derive it; "none" if no constituent), and the learner's merges and
+/// categories are read against it.
+fn trace(dir: &str, n: usize) {
+    use q_lm::family::{Family, Sym};
+    use q_lm::subst::{Merge, Subst};
+    use std::collections::BTreeMap;
+    let f = Family::parse(&fs::read_to_string(format!("{dir}/family.txt")).expect("a family directory"));
+    let train = read(&format!("{dir}/train.txt"));
+    let negative = read(&format!("{dir}/negative.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let mut log: Vec<Merge> = Vec::new();
+    let mut m = Subst::train_logged(&train[..n], &vocab, Some(&mut log));
+    m.em(&train[..n], 20, 1e-3);
+    let words = |w: &[u32]| w.iter().map(|&t| m.word_list[t as usize].as_str()).collect::<Vec<_>>().join(" ");
+    let mut sig_cache: HashMap<Vec<u32>, String> = HashMap::new();
+    let mut sig = |w: &[u32]| -> String {
+        sig_cache
+            .entry(w.to_vec())
+            .or_insert_with(|| {
+                let s: Vec<String> = w.iter().map(|&t| m.word_list[t as usize].clone()).collect();
+                let mut t: Vec<String> = f
+                    .derivations(&s)
+                    .keys()
+                    .map(|y| match y {
+                        Sym::Class(c) => c.clone(),
+                        other => format!("{other:?}"),
+                    })
+                    .collect();
+                t.sort();
+                if t.is_empty() { "none".into() } else { t.join("+") }
+            })
+            .clone()
+    };
+    println!("{n} training sentences: {} categories, {} rules, {} unions\n", m.categories, m.size(), log.len());
+    // Categories by the true types of their members.
+    let mut by_cat: BTreeMap<u32, BTreeMap<String, Vec<Vec<u32>>>> = BTreeMap::new();
+    for (w, &c) in &m.category_of {
+        by_cat.entry(c).or_default().entry(sig(w)).or_default().push(w.clone());
+    }
+    let mut mixed: Vec<(u32, usize, &BTreeMap<String, Vec<Vec<u32>>>)> = by_cat
+        .iter()
+        .filter(|(_, t)| t.len() > 1)
+        .map(|(&c, t)| (c, t.values().map(|v| v.len()).sum(), t))
+        .collect();
+    mixed.sort_by_key(|x| std::cmp::Reverse(x.1));
+    println!("**Categories whose members have more than one true type: {} of {}.**\n", mixed.len(), by_cat.len());
+    for (c, total, t) in mixed.iter().take(8) {
+        println!("- category {c}, {total} members:");
+        for (s, ws) in t.iter() {
+            let mut ex: Vec<&Vec<u32>> = ws.iter().collect();
+            ex.sort_by_key(|w| w.len());
+            println!("  - {s} ({}): {}", ws.len(), ex.iter().take(4).map(|w| format!("`{}`", words(w))).collect::<Vec<_>>().join(", "));
+        }
+    }
+    // Unions across true types, in the order made.
+    let mut crossing: BTreeMap<(String, String), (usize, Option<&Merge>)> = BTreeMap::new();
+    for mg in &log {
+        let (x, y) = (sig(&mg.a), sig(&mg.b));
+        if x != y {
+            let k = if x < y { (x, y) } else { (y, x) };
+            let e = crossing.entry(k).or_insert((0, None));
+            e.0 += 1;
+            e.1.get_or_insert(mg);
+        }
+    }
+    println!("\n**Unions across true types: {} of {}.** By pair of types, with the first such union and the context that made it:\n", crossing.values().map(|v| v.0).sum::<usize>(), log.len());
+    let mut cr: Vec<_> = crossing.iter().collect();
+    cr.sort_by_key(|x| std::cmp::Reverse(x.1 .0));
+    for ((x, y), (count, first)) in cr.iter().take(12) {
+        let mg = first.unwrap();
+        println!("- {x} with {y}: {count} unions; first `{}` with `{}` in `{} _ {}`", words(&mg.a), words(&mg.b), words(&mg.left), words(&mg.right));
+    }
+    // The most probable derivation of accepted ungrammatical sentences.
+    println!("\n**Ungrammatical sentences the grammar derives**, most probable derivation, each node with its span's true type:\n");
+    let mut shown = 0;
+    let mut accepted = 0;
+    for s in &negative {
+        if m.probability(s) == 0.0 {
+            continue;
+        }
+        accepted += 1;
+        if shown >= 4 {
+            continue;
+        }
+        shown += 1;
+        let ws: Vec<u32> = s.iter().map(|w| m.word_id(w).unwrap()).collect();
+        let k = ws.len();
+        // Viterbi: best[i][j][cat] = (prob, split, left cat, right cat).
+        let mut best: Vec<Vec<HashMap<u32, (f64, usize, u32, u32)>>> = vec![vec![HashMap::new(); k + 1]; k + 1];
+        for i in 0..k {
+            for &(a, p) in m.lexical.get(&ws[i]).into_iter().flatten() {
+                best[i][i + 1].insert(a, (p, 0, u32::MAX, 0));
+            }
+        }
+        for len in 2..=k {
+            for i in 0..=k - len {
+                let j = i + len;
+                let mut cell: HashMap<u32, (f64, usize, u32, u32)> = HashMap::new();
+                for mid in i + 1..j {
+                    for (&b, &(pb, ..)) in &best[i][mid] {
+                        for (&c, &(pc, ..)) in &best[mid][j] {
+                            for &(a, p) in m.binary.get(&(b, c)).into_iter().flatten() {
+                                let v = p * pb * pc;
+                                if cell.get(&a).is_none_or(|x| x.0 < v) {
+                                    cell.insert(a, (v, mid, b, c));
+                                }
+                            }
+                        }
+                    }
+                }
+                best[i][j] = cell;
+            }
+        }
+        fn show(best: &[Vec<HashMap<u32, (f64, usize, u32, u32)>>], i: usize, j: usize, a: u32, depth: usize, out: &mut Vec<(usize, usize, usize, u32)>) {
+            out.push((depth, i, j, a));
+            let (_, mid, b, c) = best[i][j][&a];
+            if b != u32::MAX {
+                show(best, i, mid, b, depth + 1, out);
+                show(best, mid, j, c, depth + 1, out);
+            }
+        }
+        let mut nodes = Vec::new();
+        show(&best, 0, k, m.start, 0, &mut nodes);
+        println!("`{}`\n", s.join(" "));
+        println!("```");
+        for (d, i, j, a) in nodes {
+            if j - i > 1 {
+                println!("{}[{a}] {}   ({})", "  ".repeat(d), words(&ws[i..j]), sig(&ws[i..j]));
+            }
+        }
+        println!("```\n");
+    }
+    println!("{accepted} of {} ungrammatical sentences derived.", negative.len());
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -952,6 +1089,7 @@ fn main() {
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
         Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
+        Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("mdl") => mdl(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),
         Some("prefix") => prefix(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(10_000)),
