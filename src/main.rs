@@ -26,7 +26,15 @@ fn read(path: &str) -> Vec<Sentence> {
     fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("{path}: {e}"))
         .lines()
-        .map(|l| l.rsplit('\t').next().unwrap().split(' ').filter(|w| !w.is_empty()).map(String::from).collect())
+        .map(|l| {
+            l.rsplit('\t')
+                .next()
+                .unwrap()
+                .split(' ')
+                .filter(|w| !w.is_empty())
+                .map(String::from)
+                .collect()
+        })
         .collect()
 }
 
@@ -38,21 +46,40 @@ fn data(dir: &str) {
     fs::create_dir_all(dir).unwrap();
     let (all, _) = corpus();
     let (train, held, confirm) = split(&all, SPLIT_SEED);
-    write(&format!("{dir}/train.txt"), train.iter().map(|s| s.join(" ")));
+    write(
+        &format!("{dir}/train.txt"),
+        train.iter().map(|s| s.join(" ")),
+    );
     write(&format!("{dir}/dev.txt"), held.iter().map(|s| s.join(" ")));
-    write(&format!("{dir}/confirm.txt"), confirm.iter().map(|s| s.join(" ")));
+    write(
+        &format!("{dir}/confirm.txt"),
+        confirm.iter().map(|s| s.join(" ")),
+    );
     // Nested subsets for the learning curves: the first n of the (shuffled)
     // training sentences.
     for n in sizes(train.len()) {
-        write(&format!("{dir}/train-{n}.txt"), train.iter().take(n).map(|s| s.join(" ")));
+        write(
+            &format!("{dir}/train-{n}.txt"),
+            train.iter().take(n).map(|s| s.join(" ")),
+        );
     }
     let deep = deep_sentences(SAMPLES, DEEP_SEED);
     // The vocabulary of the language, given to every learner: the words of
     // the corpus and of the deeper sentences. CE occurs only in the second
     // (DE CE QUE needs two levels of embedding).
-    let vocab: BTreeSet<&String> = all.iter().flatten().chain(deep.iter().flat_map(|(_, s)| s)).collect();
-    write(&format!("{dir}/vocab.txt"), vocab.iter().map(|w| w.to_string()));
-    write(&format!("{dir}/deep.txt"), deep.iter().map(|(t, s)| format!("{t}\t{}", s.join(" "))));
+    let vocab: BTreeSet<&String> = all
+        .iter()
+        .flatten()
+        .chain(deep.iter().flat_map(|(_, s)| s))
+        .collect();
+    write(
+        &format!("{dir}/vocab.txt"),
+        vocab.iter().map(|w| w.to_string()),
+    );
+    write(
+        &format!("{dir}/deep.txt"),
+        deep.iter().map(|(t, s)| format!("{t}\t{}", s.join(" "))),
+    );
     // A second deeper test with only words of the training sentences, so
     // that depth is tested apart from unseen words. (A smaller training
     // subset may still lack some; the report counts how many are covered.)
@@ -67,7 +94,36 @@ fn data(dir: &str) {
         }
         seed += 1;
     }
-    write(&format!("{dir}/deep-seen.txt"), deep_seen.iter().map(|(t, s)| format!("{t}\t{}", s.join(" "))));
+    // Negative test: development sentences with two words swapped, kept only
+    // when the report's analysis rejects them. A learner that derives these
+    // overgenerates.
+    let sys = paraphrase();
+    let mut rng = Rng(DEEP_SEED + 100);
+    let mut negative: Vec<Sentence> = Vec::new();
+    while negative.len() < SAMPLES {
+        let mut s = held[(rng.draw() as usize) % held.len()].clone();
+        let (i, j) = (
+            (rng.draw() as usize) % (s.len() - 1),
+            (rng.draw() as usize) % (s.len() - 1),
+        );
+        if s[i] == s[j] {
+            continue;
+        }
+        s.swap(i, j);
+        if analyse(&sys, &s).is_none() {
+            negative.push(s);
+        }
+    }
+    write(
+        &format!("{dir}/negative.txt"),
+        negative.iter().map(|s| s.join(" ")),
+    );
+    write(
+        &format!("{dir}/deep-seen.txt"),
+        deep_seen
+            .iter()
+            .map(|(t, s)| format!("{t}\t{}", s.join(" "))),
+    );
     println!(
         "{} sentences: {} to train on, {} for development, {} for confirmation; {} deeper sentences, and {} with only words of the training sentences",
         all.len(),
@@ -89,7 +145,11 @@ struct Judged {
 
 fn judge_all(samples: &[Sentence], train: &BTreeSet<&Sentence>) -> Judged {
     let sys = paraphrase();
-    let mut j = Judged { grammatical: 0, novel_grammatical: 0, deep_grammatical: 0 };
+    let mut j = Judged {
+        grammatical: 0,
+        novel_grammatical: 0,
+        deep_grammatical: 0,
+    };
     for s in samples {
         if let Some(t) = analyse(&sys, s) {
             j.grammatical += 1;
@@ -108,7 +168,11 @@ fn per_token<F: FnMut(&[String], &str) -> f64>(set: &[Sentence], mut p: F) -> f6
 
 /// The most any next-token distribution strays from summing to 1, over the
 /// prefixes of the first 50 held-out and 50 deeper sentences.
-fn normalisation<F: FnMut(&[String], &str) -> f64>(vocab: &[String], sets: [&[Sentence]; 2], mut p: F) -> f64 {
+fn normalisation<F: FnMut(&[String], &str) -> f64>(
+    vocab: &[String],
+    sets: [&[Sentence]; 2],
+    mut p: F,
+) -> f64 {
     let mut worst: f64 = 0.0;
     for set in sets {
         for s in set.iter().take(50) {
@@ -134,10 +198,18 @@ fn print(r: &Row) {
     let j = r
         .judged
         .as_ref()
-        .map(|j| format!("{} | {} | {}", j.grammatical, j.novel_grammatical, j.deep_grammatical))
+        .map(|j| {
+            format!(
+                "{} | {} | {}",
+                j.grammatical, j.novel_grammatical, j.deep_grammatical
+            )
+        })
         .unwrap_or("– | – | –".into());
     let n = r.norm.map(|n| format!("{n:.1e}")).unwrap_or("–".into());
-    println!("| {} | {:.4} | {} | {} | {j} | {n} |", r.name, r.held, r.deep, r.deep_seen);
+    println!(
+        "| {} | {:.4} | {} | {} | {j} | {n} |",
+        r.name, r.held, r.deep, r.deep_seen
+    );
 }
 
 fn report(dir: &str) {
@@ -145,7 +217,11 @@ fn report(dir: &str) {
     let held = read(&format!("{dir}/dev.txt"));
     let deep = read(&format!("{dir}/deep.txt"));
     let deep_seen = read(&format!("{dir}/deep-seen.txt"));
-    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt"))
+        .unwrap()
+        .lines()
+        .map(String::from)
+        .collect();
     let train_set: BTreeSet<&Sentence> = train.iter().collect();
     println!(
         "{} training sentences, {} for development (the confirmation set is not read), {} deeper (of which {} contain CE), {} deeper with only corpus words; {SAMPLES} samples per model\n",
@@ -212,7 +288,9 @@ fn report(dir: &str) {
         total / tokens as f64
     };
     let mut seed = SAMPLE_SEED;
-    let open_samples: Vec<Sentence> = (0..SAMPLES).map(|_| qsystems::open::sample(prior, None, &mut seed)).collect();
+    let open_samples: Vec<Sentence> = (0..SAMPLES)
+        .map(|_| qsystems::open::sample(prior, None, &mut seed))
+        .collect();
     print(&Row {
         name: "the report's rules as an open grammar (E17, given the grammar)".into(),
         held: open_bits(&held),
@@ -226,7 +304,10 @@ fn report(dir: &str) {
         let sub = &train[..n];
         let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
         let words: BTreeSet<&String> = sub.iter().flatten().collect();
-        let covered = deep_seen.iter().filter(|s| s.iter().all(|w| words.contains(w))).count();
+        let covered = deep_seen
+            .iter()
+            .filter(|s| s.iter().all(|w| words.contains(w)))
+            .count();
         println!("| *{n} training sentences: {covered} of the {} deeper sentences with corpus words use only words of these* | | | | | | | |", deep_seen.len());
         // Kneser–Ney n-grams.
         for order in [3, 4, 6] {
@@ -237,7 +318,10 @@ fn report(dir: &str) {
             let mut rng = Rng(SAMPLE_SEED);
             let samples: Vec<Sentence> = (0..SAMPLES).map(|_| m.sample(&mut rng, 200)).collect();
             print(&Row {
-                name: format!("Kneser–Ney {order}-gram, {n} sentences ({} n-grams, {secs:.2} s)", m.size()),
+                name: format!(
+                    "Kneser–Ney {order}-gram, {n} sentences ({} n-grams, {secs:.2} s)",
+                    m.size()
+                ),
                 held: per_token(&held, p),
                 deep: format!("{:.4}", per_token(&deep, p)),
                 deep_seen: format!("{:.4}", per_token(&deep_seen, p)),
@@ -252,8 +336,18 @@ fn report(dir: &str) {
             let m = KTails::train(sub, k);
             let secs = t.elapsed().as_secs_f64();
             let v = vocab.len() as f64 + 1.0;
-            let p = |prefix: &[String], t: &str| if m.reachable(prefix) { 0.999 * m.p(prefix, t) + 0.001 / v } else { 1.0 / v };
-            let allowed = |set: &[Sentence]| set.iter().filter(|s| bits(s, |pr: &[String], t: &str| m.p(pr, t)).is_finite()).count();
+            let p = |prefix: &[String], t: &str| {
+                if m.reachable(prefix) {
+                    0.999 * m.p(prefix, t) + 0.001 / v
+                } else {
+                    1.0 / v
+                }
+            };
+            let allowed = |set: &[Sentence]| {
+                set.iter()
+                    .filter(|s| bits(s, |pr: &[String], t: &str| m.p(pr, t)).is_finite())
+                    .count()
+            };
             let mut rng = Rng(SAMPLE_SEED);
             let samples: Vec<Sentence> = (0..SAMPLES).map(|_| m.sample(&mut rng, 200)).collect();
             print(&Row {
@@ -297,27 +391,135 @@ fn report(dir: &str) {
     println!("\n**Transformer learning curves.** The floor is {floor:.4} bits per token on the development sentences. Steps (of 64 sentences each) until the bits first come within 5% and within 1% of it, from the curve each run writes (bits on the first 2,000 development sentences, every 250 steps).\n");
     println!("| run | within 5% | within 1% | best | at step |");
     println!("|---|---:|---:|---:|---:|");
-    let mut curves: Vec<String> = fs::read_dir(dir).unwrap().flatten().map(|e| e.file_name().to_string_lossy().to_string()).filter(|f| f.ends_with(".curve")).collect();
-    curves.sort_by_key(|f| (f.split('-').nth(1).and_then(|n| n.parse::<usize>().ok()).unwrap_or(0), f.clone()));
+    let mut curves: Vec<String> = fs::read_dir(dir)
+        .unwrap()
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|f| f.ends_with(".curve"))
+        .collect();
+    curves.sort_by_key(|f| {
+        (
+            f.split('-')
+                .nth(1)
+                .and_then(|n| n.parse::<usize>().ok())
+                .unwrap_or(0),
+            f.clone(),
+        )
+    });
     for f in curves {
         let pts: Vec<(usize, f64)> = fs::read_to_string(format!("{dir}/{f}"))
             .unwrap()
             .lines()
             .map(|l| {
                 let mut w = l.split_whitespace();
-                (w.next().unwrap().parse().unwrap(), w.next().unwrap().parse().unwrap())
+                (
+                    w.next().unwrap().parse().unwrap(),
+                    w.next().unwrap().parse().unwrap(),
+                )
             })
             .collect();
-        let first = |frac: f64| pts.iter().find(|(_, b)| *b <= floor * (1.0 + frac)).map(|(s, _)| s.to_string()).unwrap_or("never".into());
-        let best = pts.iter().cloned().fold((0, f64::INFINITY), |a, b| if b.1 < a.1 { b } else { a });
-        println!("| {} | {} | {} | {:.4} | {} |", f.trim_end_matches(".curve"), first(0.05), first(0.01), best.1, best.0);
+        let first = |frac: f64| {
+            pts.iter()
+                .find(|(_, b)| *b <= floor * (1.0 + frac))
+                .map(|(s, _)| s.to_string())
+                .unwrap_or("never".into())
+        };
+        let best = pts
+            .iter()
+            .cloned()
+            .fold((0, f64::INFINITY), |a, b| if b.1 < a.1 { b } else { a });
+        println!(
+            "| {} | {} | {} | {:.4} | {} |",
+            f.trim_end_matches(".curve"),
+            first(0.05),
+            first(0.01),
+            best.1,
+            best.0
+        );
+    }
+}
+
+/// QLM-003: the substitutability learner at each training size.
+fn subst(dir: &str, largest: usize) {
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let deep = read(&format!("{dir}/deep.txt"));
+    let deep_seen = read(&format!("{dir}/deep-seen.txt"));
+    let negative = read(&format!("{dir}/negative.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt"))
+        .unwrap()
+        .lines()
+        .map(String::from)
+        .collect();
+    let v = vocab.len() as f64 + 1.0;
+    println!("| training sentences | categories | rules | trained in | development: derivable | bits/token | deeper: derivable | deeper, corpus words: derivable | ungrammatical: derivable | samples finished | grammatical | of them not in training | of them deeper |");
+    println!("|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    for n in sizes(train.len()).into_iter().filter(|&n| n <= largest) {
+        let sub = &train[..n];
+        let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
+        for em in [0usize, 5] {
+            let t = Instant::now();
+            let mut m = Subst::train(sub, &vocab);
+            if em > 0 {
+                m.em(sub, em, 1e-3);
+            }
+            let secs = t.elapsed().as_secs_f64();
+            let derivable =
+                |set: &[Sentence]| set.iter().filter(|s| m.probability(s) > 0.0).count();
+            // Bits: the grammar with a floor, a uniform model of one part in a
+            // thousand mixed in at the level of the sentence.
+            let (mut total, mut tokens, mut ok) = (0.0, 0usize, 0);
+            for s in &dev {
+                let p = m.probability(s);
+                ok += (p > 0.0) as usize;
+                let floor = (1.0 / v).powi(s.len() as i32 + 1);
+                total -= (0.999 * p + 0.001 * floor).log2();
+                tokens += s.len() + 1;
+            }
+            let mut rng = Rng(SAMPLE_SEED);
+            let drawn: Vec<Option<Sentence>> =
+                (0..SAMPLES).map(|_| m.sample(&mut rng, 200)).collect();
+            let finished: Vec<Sentence> = drawn.into_iter().flatten().collect();
+            let j = judge_all(&finished, &sub_set);
+            println!(
+            "| {n}{} | {} | {} | {secs:.2} s | {ok} of {} | {:.4} | {} of {} | {} of {} | {} of {} | {} | {} | {} | {} |",
+            if em > 0 { format!(", then {em} rounds of inside–outside") } else { String::new() },
+            m.categories,
+            m.size(),
+            dev.len(),
+            total / tokens as f64,
+            derivable(&deep),
+            deep.len(),
+            derivable(&deep_seen),
+            deep_seen.len(),
+            derivable(&negative),
+            negative.len(),
+            finished.len(),
+            j.grammatical,
+            j.novel_grammatical,
+            j.deep_grammatical
+        );
+            // The largest categories, for inspection.
+            let mut cats: Vec<(&u32, &usize)> = m.member_count.iter().collect();
+            cats.sort_by(|a, b| b.1.cmp(a.1));
+            for (c, count) in cats.iter().take(6) {
+                eprintln!(
+                    "  {n}: category {c}, {count} members: {}",
+                    m.examples[c].join(" | ")
+                );
+            }
+        }
     }
 }
 
 fn judge(path: &str) {
     let sys = paraphrase();
     let samples = read(path);
-    let ok = samples.iter().filter(|s| analyse(&sys, s).is_some()).count();
+    let ok = samples
+        .iter()
+        .filter(|s| analyse(&sys, s).is_some())
+        .count();
     println!("{ok} of {} grammatical", samples.len());
 }
 
@@ -327,6 +529,12 @@ fn main() {
         Some("data") => data(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("report") => report(args.get(2).map(String::as_str).unwrap_or("data")),
         Some("judge") => judge(&args[2]),
+        Some("subst") => subst(
+            args.get(2).map(String::as_str).unwrap_or("data"),
+            args.get(3)
+                .and_then(|x| x.parse().ok())
+                .unwrap_or(usize::MAX),
+        ),
         _ => eprintln!("usage: qlm data DIR | qlm report DIR | qlm judge FILE"),
     }
 }

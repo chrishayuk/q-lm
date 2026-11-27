@@ -31,7 +31,12 @@ fn padded(s: &[String], order: usize) -> Vec<String> {
 impl KneserNey {
     /// `vocab`: every token the model may predict (END included); words of it
     /// never seen in training get probability only through the uniform floor.
-    pub fn train(sentences: &[Vec<String>], vocab: &[String], order: usize, discount: f64) -> KneserNey {
+    pub fn train(
+        sentences: &[Vec<String>],
+        vocab: &[String],
+        order: usize,
+        discount: f64,
+    ) -> KneserNey {
         let mut top: Counts = HashMap::new();
         let mut vocab: BTreeSet<String> = vocab.iter().cloned().collect();
         vocab.insert(END.into());
@@ -39,7 +44,10 @@ impl KneserNey {
             let v = padded(s, order);
             for i in order - 1..v.len() {
                 vocab.insert(v[i].clone());
-                *top.entry(v[i + 1 - order..i].to_vec()).or_default().entry(v[i].clone()).or_insert(0) += 1;
+                *top.entry(v[i + 1 - order..i].to_vec())
+                    .or_default()
+                    .entry(v[i].clone())
+                    .or_insert(0) += 1;
             }
         }
         // Continuation counts, from each order down.
@@ -50,7 +58,11 @@ impl KneserNey {
             for (ctx, nexts) in &counts[k] {
                 for w in nexts.keys() {
                     // ctx has k tokens; drop the first for order k.
-                    *lower.entry(ctx[1..].to_vec()).or_default().entry(w.clone()).or_insert(0) += 1;
+                    *lower
+                        .entry(ctx[1..].to_vec())
+                        .or_default()
+                        .entry(w.clone())
+                        .or_insert(0) += 1;
                 }
             }
             counts[k - 1] = lower;
@@ -90,7 +102,10 @@ impl KneserNey {
 
     /// Entries stored: every (context, next token) count at every order.
     pub fn size(&self) -> usize {
-        self.counts.iter().map(|c| c.values().map(|n| n.len()).sum::<usize>()).sum()
+        self.counts
+            .iter()
+            .map(|c| c.values().map(|n| n.len()).sum::<usize>())
+            .sum()
     }
 
     /// P(next token | prefix).

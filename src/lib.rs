@@ -17,6 +17,7 @@
 
 pub mod ktails;
 pub mod ngram;
+pub mod subst;
 
 use qsystems::lm::Rng;
 use qsystems::machine::{apply, strings_text, Arrow, Graph, Limits, System};
@@ -63,10 +64,30 @@ fn tokens(g: &Graph) -> Vec<Sentence> {
 pub fn language_graph(trees: &[String]) -> Graph {
     let mut arrows: Vec<Arrow> = trees
         .iter()
-        .map(|t| Arrow { from: 0, to: 1, tree: parse_tree(t).unwrap() })
+        .map(|t| Arrow {
+            from: 0,
+            to: 1,
+            tree: parse_tree(t).unwrap(),
+        })
         .collect();
-    arrows.push(Arrow { from: 1, to: 2, tree: Tree::leaf(".") });
-    apply(&paraphrase()[1], &Graph { arrows, nverts: 3, entry: 0, exit: 2 }, Limits { max_arrows: 10_000_000 }).result
+    arrows.push(Arrow {
+        from: 1,
+        to: 2,
+        tree: Tree::leaf("."),
+    });
+    apply(
+        &paraphrase()[1],
+        &Graph {
+            arrows,
+            nverts: 3,
+            entry: 0,
+            exit: 2,
+        },
+        Limits {
+            max_arrows: 10_000_000,
+        },
+    )
+    .result
 }
 
 /// The 131,424 sentences of the trees with at most one level of embedding,
@@ -87,7 +108,10 @@ pub fn synthesis(tree: &str) -> Graph {
 /// clause that itself embeds one, as subject or object of the main clause,
 /// and a random paraphrase of each.
 pub fn deep_sentences(n: usize, seed: u64) -> Vec<(String, Sentence)> {
-    let deep: Vec<String> = clauses(1).into_iter().filter(|c| c.contains("PH(")).collect();
+    let deep: Vec<String> = clauses(1)
+        .into_iter()
+        .filter(|c| c.contains("PH("))
+        .collect();
     let mut rng = Rng(seed);
     (0..n)
         .map(|_| {
@@ -99,7 +123,8 @@ pub fn deep_sentences(n: usize, seed: u64) -> Vec<(String, Sentence)> {
             } else {
                 format!("PI(V({v}),{b},{a})")
             };
-            let s = qsystems::lm::generate(&qsystems::lm::Lm::new(&synthesis(&tree)), false, &mut rng);
+            let s =
+                qsystems::lm::generate(&qsystems::lm::Lm::new(&synthesis(&tree)), false, &mut rng);
             (tree, s)
         })
         .collect()
@@ -121,8 +146,17 @@ pub fn analyse(sys: &[System], s: &[String]) -> Option<Tree> {
     if s.is_empty() || s.len() > 400 {
         return None;
     }
-    let chain: Vec<Tree> = s.iter().map(|w| parse_tree(w).ok()).collect::<Option<_>>()?;
-    let o = apply(&sys[0], &Graph::from_chain(&chain), Limits { max_arrows: 200_000 });
+    let chain: Vec<Tree> = s
+        .iter()
+        .map(|w| parse_tree(w).ok())
+        .collect::<Option<_>>()?;
+    let o = apply(
+        &sys[0],
+        &Graph::from_chain(&chain),
+        Limits {
+            max_arrows: 200_000,
+        },
+    );
     let r = strings_text(&o.result);
     if o.converged && r.len() == 1 && r[0].starts_with("PI(") && r[0].ends_with(" + .") {
         parse_tree(r[0].trim_end_matches(" + .")).ok()

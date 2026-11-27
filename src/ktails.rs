@@ -89,11 +89,24 @@ impl KTails {
         for v in 0..n {
             for (w, &c) in &counts[v] {
                 totals[state[v]] += c;
-                let to = if w == END { usize::MAX } else { state[children[v][w]] };
-                *arrows[state[v]].entry(w.clone()).or_default().entry(to).or_insert(0) += c;
+                let to = if w == END {
+                    usize::MAX
+                } else {
+                    state[children[v][w]]
+                };
+                *arrows[state[v]]
+                    .entry(w.clone())
+                    .or_default()
+                    .entry(to)
+                    .or_insert(0) += c;
             }
         }
-        KTails { k, arrows, totals, start: state[0] }
+        KTails {
+            k,
+            arrows,
+            totals,
+            start: state[0],
+        }
     }
 
     pub fn states(&self) -> usize {
@@ -101,7 +114,10 @@ impl KTails {
     }
 
     pub fn size(&self) -> usize {
-        self.arrows.iter().map(|a| a.values().map(|t| t.len()).sum::<usize>()).sum()
+        self.arrows
+            .iter()
+            .map(|a| a.values().map(|t| t.len()).sum::<usize>())
+            .sum()
     }
 
     /// The weighted states after a prefix (weights sum to the probability of
