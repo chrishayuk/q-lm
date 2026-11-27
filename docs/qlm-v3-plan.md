@@ -108,3 +108,98 @@ address–read–transform–write cycle.
   - the distractors are answered by their own chain in at least 75%;
   - the four-hop world works with the chain extended by learning, not by
     hand.
+
+
+## Revision 1 (before any v3 code): corrections and a second task
+
+Written after review, before implementation. Where this disagrees with the
+text above, this governs.
+
+**Two kinds of program.**
+- **v3a, static:** a learned sequence of operations for a query type,
+  executed whatever the intermediate results are. Stages L1 to L3 above.
+- **v3b, dynamic:** at each pass the runtime inspects the working state,
+  selects the next operation from it, executes it, and decides from the
+  new state whether to stop. The operation chosen depends on what the last
+  one returned. This is the property the runtime is eventually meant to
+  have.
+
+**Two training regimes, reported separately.**
+- **T1, one-hop facts only:** no composed statement for anyone. A query
+  type cannot be learned from examples here, so T1 tests the runtime with
+  a supplied program, over learned entities and relations (stages O to
+  L2).
+- **T2, one-hop facts plus composed answers for training entities:** the
+  program is learned from those examples and tested on held-out entities
+  (L3, v3b). This is compositional generalisation from examples, not
+  learning from one-hop facts alone, and is reported as that.
+
+**Entities keep their identities.** An entity is the individual token, with
+its occurrences and bindings. Context classes (v2's PPMI classes) are only
+soft memberships used to propose candidates. Entity identity is never
+reduced to a class.
+
+**Stopping.** A learned fixed chain length is not a stopping decision. A
+stop is learned only if it is conditioned on the state: on task B, where
+paths of different lengths share one query type, a fixed-length program is
+the control, and a learned stop must beat it.
+
+**Depth, in two tests.**
+- **D-extend:** a deeper world (one more level) with **no** composed
+  answers at the new depth. The program must extend itself, for example
+  by repeating an operation until a stop condition, not by being shown
+  longer examples.
+- **D-learn:** a deeper world with composed answers at the new depth: a
+  new, longer program learned from them.
+
+**Baselines on the exact task.** The transformers (Llama-shaped and the
+custom one) and v2 are retrained on the v3 task data. The quoted
+version-2 world numbers are not comparisons.
+
+### Task B: state-dependent routing
+
+A synthetic graph built so that the operation sequence is not predictable
+from the query.
+- **Nodes** have names and a kind (one of 6). Every node has 4 outgoing
+  relations, each a different relation word; 3 of them are distractors.
+- **The rule:** which relation to follow depends on the current node's
+  kind. Two kinds are terminal: the walk stops there.
+- **Paths** from start nodes are built to have length 2, 3 or 5, in equal
+  numbers, under one query form ("from X the end is Z").
+- **Text:** one-hop facts ("X is red .", "X points to Y ."). Under T2,
+  also composed answers for training start nodes. Held-out start nodes
+  never appear in a composed statement.
+- **The learner must discover:** which relation each kind selects, which
+  kinds stop the walk, and the identities of the nodes.
+- **Tests:** accuracy by path length; depth 7 (D-extend, never seen
+  composed); unseen start nodes; distractors at every step.
+
+### Roadmap
+
+| stage | what | state |
+|---|---|---|
+| v3.0 | oracle execution runtime (supplied knowledge and program) | next |
+| v3.1 | entities and relations learned from text | planned |
+| v3.2 | reusable operation sequences learned (v3a) | planned |
+| v3.3 | state-dependent addressing (v3b) | proposed |
+| v3.4 | dynamic computation depth: learned stopping | proposed |
+| v3.5 | the computational state projected into next-token prediction | proposed |
+| v3.6 | back to TinyStories | future |
+
+v2's 4.024 bits per token stays frozen as the natural-language baseline.
+Its 5-gram component is not yet under the normalisation gate.
+
+### What v3.0 must show, and no more
+
+- **The runtime executes correctly:** on both tasks, with the supplied
+  knowledge and program, held-out accuracy is at least 99% once the number
+  of passes is at least the path length, and is no better than chance
+  below it.
+- **Uncertainty is carried:** with one supplied fact made ambiguous (two
+  objects, weights 0.5 and 0.5), the answer distribution splits in the
+  same proportions.
+- **The projection normalises:** the next-token distribution passes the
+  admission gate.
+
+None of this is learning. It qualifies the machine the learned stages will
+replace parts of.

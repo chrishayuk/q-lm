@@ -1,0 +1,180 @@
+data-v3/A-deep-s1-T1 (A, T1): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: bidira lives in kumofo or mubaru (0.5 each) -> timulu 0.500, varole 0.500 (expected timulu 0.5, varole 0.5)
+data-v3/A-deep-s2-T1 (A, T1): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: betave lives in foboti or gimume (0.5 each) -> zarizu 0.500, milibu 0.500 (expected zarizu 0.5, milibu 0.5)
+data-v3/A-deep-s3-T1 (A, T1): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: babopi lives in kefapo or moguda (0.5 each) -> gulugu 0.500, bevamo 0.500 (expected gulugu 0.5, bevamo 0.5)
+data-v3/A-s1-T1 (A, T1): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: dudubi lives in dokeka or luseza (0.5 each) -> varole 0.500, gidomi 0.500 (expected varole 0.5, gidomi 0.5)
+data-v3/A-s2-T1 (A, T1): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: bagubu lives in lufoze or bofafu (0.5 each) -> difefa 0.500, rekenu 0.500 (expected difefa 0.5, rekenu 0.5)
+data-v3/A-s3-T1 (A, T1): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: bavago lives in bidibi or fozobu (0.5 each) -> bevamo 0.500, mazuge 0.500 (expected bevamo 0.5, mazuge 0.5)
+data-v3/B-s1-T1 (B, T1): knowledge 4080 entries, 126361 bytes serialised; 0.066 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s1-T1 (B, T1, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.066 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.033
+data-v3/B-s2-T1 (B, T1): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s2-T1 (B, T1, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.066 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s3-T1 (B, T1): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s3-T1 (B, T1, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.066 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/A-deep-s1-T2 (A, T2): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: bidira lives in kumofo or mubaru (0.5 each) -> timulu 0.500, varole 0.500 (expected timulu 0.5, varole 0.5)
+data-v3/A-deep-s2-T2 (A, T2): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: betave lives in foboti or gimume (0.5 each) -> zarizu 0.500, milibu 0.500 (expected zarizu 0.5, milibu 0.5)
+data-v3/A-deep-s3-T2 (A, T2): knowledge 244 entries, 8208 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | depth d4 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 0.000 | 1.000
+       2 | 0.000 | 0.000 | 1.000
+       3 | 1.000 | 0.000 | 1.000
+       4 | 1.000 | 1.000 | 1.000
+       8 | 1.000 | 1.000 | 1.000
+  ambiguity: babopi lives in kefapo or moguda (0.5 each) -> gulugu 0.500, bevamo 0.500 (expected gulugu 0.5, bevamo 0.5)
+data-v3/A-s1-T2 (A, T2): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: dudubi lives in dokeka or luseza (0.5 each) -> varole 0.500, gidomi 0.500 (expected varole 0.5, gidomi 0.5)
+data-v3/A-s2-T2 (A, T2): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: bagubu lives in lufoze or bofafu (0.5 each) -> difefa 0.500, rekenu 0.500 (expected difefa 0.5, rekenu 0.5)
+data-v3/A-s3-T2 (A, T2): knowledge 240 entries, 8052 bytes serialised; 0.011 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d3 (n=24) | distractor d1 (n=24)
+       1 | 0.000 | 1.000
+       2 | 0.000 | 1.000
+       3 | 1.000 | 1.000
+       4 | 1.000 | 1.000
+       8 | 1.000 | 1.000
+  ambiguity: bavago lives in bidibi or fozobu (0.5 each) -> bevamo 0.500, mazuge 0.500 (expected bevamo 0.5, mazuge 0.5)
+data-v3/B-s1-T2 (B, T2): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s1-T2 (B, T2, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.033
+data-v3/B-s2-T2 (B, T2): knowledge 4080 entries, 126361 bytes serialised; 0.066 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s2-T2 (B, T2, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.068 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.000
+data-v3/B-s3-T2 (B, T2): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 1.000 | 1.000 | 0.000 | 0.000
+       4 | 1.000 | 1.000 | 0.000 | 0.000
+       8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s3-T2 (B, T2, NO STOP): knowledge 4080 entries, 126361 bytes serialised; 0.065 ms per query with projection; gate worst |sum - 1| 0.0e+00
+  passes | compose d2 (n=15) | compose d3 (n=15) | compose d5 (n=15) | depth d7 (n=30)
+       1 | 0.000 | 0.000 | 0.000 | 0.000
+       2 | 1.000 | 0.000 | 0.000 | 0.000
+       3 | 0.000 | 1.000 | 0.000 | 0.000
+       4 | 0.000 | 0.000 | 0.000 | 0.000
+       8 | 0.000 | 0.000 | 0.000 | 0.000
