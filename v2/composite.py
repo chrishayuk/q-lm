@@ -48,6 +48,7 @@ ap.add_argument("--split", default="select", choices=["select", "confirm", "conf
 ap.add_argument("--lam", type=float, default=1.0)
 ap.add_argument("--buckets", action="store_true", help="mixture weights per position bucket")
 ap.add_argument("--keys", default="", help="for arm R or V: comma-separated templates, e.g. w2,w3,c2")
+ap.add_argument("--story", default="", help="QLM-TINYSTORIES-V3-001: comma-separated story-local components: cache, bicache")
 a = ap.parse_args()
 t0 = time.time()
 core.setup(a.dir, a.n)
@@ -288,6 +289,47 @@ class Model:
         return [max(self.p(seq, t), 1e-12) for t in range(len(seq))]
 
 
+class StoryCache:
+    """QLM-TINYSTORIES-V3-001 arm B (order 1) and B2 (order 2): direct retrieval
+    from the story prefix. The prefix is the earlier development sentences of
+    the same story (recovered boundaries, tools/story_ids.py) and the earlier
+    words of this sentence. Order 1: P(w) = (n(w) + BETA p_uni(w)) / (N + BETA).
+    Order 2: P(w | v) from the prefix's own bigrams after v, backing off to
+    order 1 in the same way."""
+    story = True
+    BETA = 1.0
+
+    def __init__(self, order, base):
+        self.order, self.base, self.bindings = order, base, 0
+
+    def context(self, i):
+        sid = STORY[i]
+        j, out = i - 1, []
+        while j >= 0 and STORY[j] == sid:
+            out = dev[j] + ["<eos>"] + out
+            j -= 1
+        return [wid.get(x, END) if x != "<eos>" else END for x in out]
+
+    def probs_ctx(self, s, i):
+        ctx = self.context(i)
+        seq = [wid[x] for x in s] + [END]
+        out = []
+        for t in range(len(seq)):
+            prev = ctx + seq[:t]
+            uni = collections.Counter(prev)
+            n = len(prev)
+            p1 = (uni[seq[t]] + self.BETA * self.base.p_uni(seq[t])) / (n + self.BETA)
+            if self.order == 2:
+                v = prev[-1] if prev else START
+                nxt = collections.Counter(prev[k + 1] for k in range(len(prev) - 1) if prev[k] == v)
+                m = sum(nxt.values())
+                p1 = (nxt[seq[t]] + self.BETA * p1) / (m + self.BETA)
+            out.append(max(p1, 1e-12))
+        self.bindings = max(self.bindings, len(ctx) + len(seq))
+        return out
+
+
+STORY = [int(x) for x in open(f"{a.dir}/dev.txt.story")] if a.story else []
 enc = core.enc
 if a.arm == "A":  # v2 alone (5-gram + 4 class models)
     chosen, util = [], {}
@@ -331,6 +373,9 @@ elif a.arm == "GS":
 elif a.arm == "GB":
     ent = entity_classes(classes[0])
     models = [SuccessiveBind(classes[0], ent)]
+if a.story:
+    _base = Model(None, enc)
+    models += [StoryCache({"cache": 1, "bicache": 2}[x], _base) for x in a.story.split(",")]
 learn_secs = time.time() - t_learn
 t1 = time.time()
 
@@ -344,7 +389,14 @@ def gate(models, n_prefixes=12):
     if unseen:
         prefixes.append(dev[0][:3] + [unseen[0]])
     worst = 0.0
+    story_is = rng.sample([i for i in range(3000, 7000) if i > 0 and STORY[i] == STORY[i - 1]], n_prefixes) if a.story else []
     for m in models:
+        if getattr(m, "story", False):  # with a real story prefix
+            for i in story_is:
+                pre = dev[i][: rng.randrange(0, len(dev[i]) + 1)]
+                tot = sum(m.probs_ctx(pre + [w], i)[len(pre)] for w in core.vocab) + m.probs_ctx(pre, i)[len(pre)]
+                worst = max(worst, abs(tot - 1))
+            continue
         for pre in prefixes:
             tot = sum(m.probs(pre + [w])[len(pre)] for w in core.vocab) + m.probs(pre)[len(pre)]
             worst = max(worst, abs(tot - 1))
@@ -362,7 +414,7 @@ fit = range(0, 1000)
 evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000)}[a.split]
 cls = {i: [m.probs(dev[i]) for m in classes] for i in list(fit) + list(evalr)}
 t_inf = time.time()
-extra = {i: [m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
+extra = {i: [m.probs_ctx(dev[i], i) if getattr(m, "story", False) else m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
 inf_tokens = sum(len(dev[i]) + 1 for i in list(fit) + list(evalr))
 ms_per_token = 1000 * (time.time() - t_inf) / inf_tokens
 comps = {i: [kn[i]] + cls[i] + extra[i] for i in list(fit) + list(evalr)}
@@ -389,7 +441,7 @@ for i in evalr:
             e[1] += 1
 res = " ".join(f"{k} {B[k][0] / B[k][1]:.4f}" for k in ("all", "0-1", "2-4", "5+"))
 kept = ", ".join(f"{k}{d}" for k, d in chosen) or {"G": "successive g2-g8 (hard)", "GS": "successive g2-g8 (soft, top 4)", "GB": "successive, entity slot"}.get(a.arm, "none")
-print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} ({sum(m.bindings for m in models) * 12 / 1e6:.0f} MB at 12 bytes each) | learn {learn_secs:.0f}s | {ms_per_token:.3f} ms/token for the added components | gate: worst |sum - 1| {gate_worst:.1e} over {gate_n} prefixes | {time.time() - t0:.0f}s")
+print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''}{' story=' + a.story if a.story else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} ({sum(m.bindings for m in models) * 12 / 1e6:.0f} MB at 12 bytes each) | learn {learn_secs:.0f}s | {ms_per_token:.3f} ms/token for the added components | gate: worst |sum - 1| {gate_worst:.1e} over {gate_n} prefixes | {time.time() - t0:.0f}s")
 if util:
     for tm in templates:
         g, c, u = util[tm]

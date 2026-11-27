@@ -116,9 +116,18 @@ at 7 steps as well. What fails is giving "seven" a meaning.
 ### 2. Is a per-entity step count needed? No.
 
 S-global (entity-only states, the length enforced by the global pass
-index) equals S in every cell, on all 24 world-and-labelling runs. With
+index) equals S in every cell, on all 24 world-and-labelling runs.
+(Corrected after review: the first S-global still keyed states by
+(entity, steps), so it showed the numbers were equal but not that
+entity-only states suffice. It now keys by entity alone and reads the
+step count from the pass index. Rechecked on the noisy comparison and
+fresh worlds, both labellings: identical in every cell.) With
 synchronous passes, the pass index is the step count. The gain in
 STATE-001 comes from the evidence, not from a richer state.
+
+A note on the name: "EM labels" below is an EM-like iterative
+re-weighting. Its objective has not been written down, so it is not shown
+to be expectation-maximisation, nor to increase a likelihood.
 
 ### 3. Uncertain meanings
 
@@ -163,3 +172,11 @@ seed 302 loses 0.2 at 5 steps.
 - **"Seven" is still unreadable.** It needs meaning beyond the lengths
   seen in training: number words as a system, or meaning grounded in
   counting. Not attempted.
+
+## Closed
+
+STATE-001 is closed at these results.
+- **The registered 7-step criteria failed.**
+- **Diagnostics kept as positive secondary results:** the oracle
+  diagnostic, the pass-index control and the EM-like labelling.
+- **Numerical grounding** ("seven") is a separate synthetic track.

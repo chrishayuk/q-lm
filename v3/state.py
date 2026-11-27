@@ -37,12 +37,16 @@ def execute_s(start, post, kq, length, beam=None, acct=None, dist=None, merge_st
     if dist is not None:
         length = None
     maxlen = max(dist) if dist else length
-    states = {(start, 0): 1.0}
+    # States are keyed by (entity, steps) or, with merge_steps False, by entity alone,
+    # with the step count read from the pass index.
+    key = (lambda e, n: (e, n)) if merge_steps else (lambda e, n: e)
+    states = {key(start, 0): 1.0}
     answer = defaultdict(float)
     max_active, expansions = 1, 0
-    for _ in range(CAP):
+    for i in range(CAP):
         new = defaultdict(float)
-        for (e, n), w in states.items():
+        for st, w in states.items():
+            e, n = st if merge_steps else (st, i)
             expansions += 1
             for a, pa in post(e).items():
                 wa = w * pa
@@ -60,7 +64,7 @@ def execute_s(start, post, kq, length, beam=None, acct=None, dist=None, merge_st
                     acct["dead end"] += wa
                     continue
                 for o, x in nxt.items():
-                    new[(o, n + 1)] += wa * x  # merge_steps False: every key at this pass has the same n
+                    new[key(o, n + 1)] += wa * x
         before = sum(new.values())
         new = {s: w for s, w in new.items() if w >= FLOOR_W}
         if beam and len(new) > beam:
