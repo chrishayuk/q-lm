@@ -105,7 +105,9 @@ local generalisation and long context
 ([docs/results-qlm-attention-001.md](docs/results-qlm-attention-001.md)).
 A transformer trained with a 5-gram's window splits v2's 0.29-bit gap into
 0.12 of local generalisation and 0.17 of long context
-([docs/results-qlm-key-001-b.md](docs/results-qlm-key-001-b.md)).
+([docs/results-qlm-key-001-b.md](docs/results-qlm-key-001-b.md)). Keys learned
+by held-out gain widen with data and recover about 14% of long context's
+value ([docs/results-qlm-key-001-cde.md](docs/results-qlm-key-001-cde.md)).
 
 ## Direction
 

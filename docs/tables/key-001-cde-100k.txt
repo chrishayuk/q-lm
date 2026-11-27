@@ -1,0 +1,46 @@
+n=100000 arm=C split=select | all 4.0405 0-1 5.1577 2-4 3.9151 5+ 3.8065 | keys: w2, w3, w4, w5, w6, w7, w8 | stored bindings 3006725 | 28s
+n=100000 arm=D split=select | all 4.0420 0-1 5.1534 2-4 3.9128 5+ 3.8109 | keys: c2, c3, c4, c5, c6, c7, c8 | stored bindings 2602956 | 28s
+n=100000 arm=E split=select | all 4.0335 0-1 5.1593 2-4 3.9117 5+ 3.7959 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 7237288 | 60s
+    w2: held-out gain +0.4900, cost 0.0000, utility +0.4900
+    w3: held-out gain +0.3275, cost 0.0000, utility +0.3275
+    w4: held-out gain +0.1959, cost 0.0000, utility +0.1959
+    w5: held-out gain +0.1157, cost 0.0000, utility +0.1157
+    w6: held-out gain +0.0587, cost 0.0000, utility +0.0587
+    w7: held-out gain +0.0293, cost 0.0000, utility +0.0293
+    w8: held-out gain +0.0095, cost 0.0000, utility +0.0095
+    c2: held-out gain +0.4086, cost 0.0000, utility +0.4086
+    c3: held-out gain +0.2916, cost 0.0000, utility +0.2916
+    c4: held-out gain +0.1603, cost 0.0000, utility +0.1603
+    c5: held-out gain +0.0867, cost 0.0000, utility +0.0867
+    c6: held-out gain +0.0368, cost 0.0000, utility +0.0368
+    c7: held-out gain +0.0115, cost 0.0000, utility +0.0115
+    c8: held-out gain -0.0058, cost 0.0000, utility -0.0058
+    cw2: held-out gain +0.4557, cost 0.0000, utility +0.4557
+    cw3: held-out gain +0.2833, cost 0.0000, utility +0.2833
+    cw4: held-out gain +0.1433, cost 0.0000, utility +0.1433
+    cw5: held-out gain +0.0603, cost 0.0000, utility +0.0603
+    cw6: held-out gain +0.0098, cost 0.0000, utility +0.0098
+    cw7: held-out gain -0.0132, cost 0.0000, utility -0.0132
+    cw8: held-out gain -0.0277, cost 0.0000, utility -0.0277
+n=100000 arm=E split=select | all 4.0335 0-1 5.1593 2-4 3.9117 5+ 3.7959 | keys: w2, w3, w4, w5, w6, w7, w8, c2, c3, c4, c5, c6, c7, cw2, cw3, cw4, cw5, cw6 | stored bindings 7237288 | 60s
+    w2: held-out gain +0.4900, cost 0.0028, utility +0.4872
+    w3: held-out gain +0.3275, cost 0.0032, utility +0.3243
+    w4: held-out gain +0.1959, cost 0.0033, utility +0.1925
+    w5: held-out gain +0.1157, cost 0.0032, utility +0.1125
+    w6: held-out gain +0.0587, cost 0.0030, utility +0.0557
+    w7: held-out gain +0.0293, cost 0.0027, utility +0.0266
+    w8: held-out gain +0.0095, cost 0.0024, utility +0.0072
+    c2: held-out gain +0.4086, cost 0.0022, utility +0.4063
+    c3: held-out gain +0.2916, cost 0.0027, utility +0.2888
+    c4: held-out gain +0.1603, cost 0.0029, utility +0.1574
+    c5: held-out gain +0.0867, cost 0.0028, utility +0.0839
+    c6: held-out gain +0.0368, cost 0.0026, utility +0.0341
+    c7: held-out gain +0.0115, cost 0.0024, utility +0.0091
+    c8: held-out gain -0.0058, cost 0.0021, utility -0.0080
+    cw2: held-out gain +0.4557, cost 0.0023, utility +0.4534
+    cw3: held-out gain +0.2833, cost 0.0027, utility +0.2806
+    cw4: held-out gain +0.1433, cost 0.0029, utility +0.1404
+    cw5: held-out gain +0.0603, cost 0.0028, utility +0.0575
+    cw6: held-out gain +0.0098, cost 0.0026, utility +0.0072
+    cw7: held-out gain -0.0132, cost 0.0024, utility -0.0155
+    cw8: held-out gain -0.0277, cost 0.0021, utility -0.0299
