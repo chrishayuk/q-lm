@@ -1254,6 +1254,73 @@ fn roles(dir: &str) {
     println!("{dir}: roles.txt (1,000 sentences) and lexical.txt");
 }
 
+/// QLM-EQUIV-001: arms A (one shared context), B (at least k) and C
+/// (overlap at least theta) on a language directory, at n training
+/// sentences, each with 20 rounds of inside–outside. Within B and C, the
+/// parameter is chosen by the shortest two-part description (training
+/// sentences only), and every setting is reported. Ungrammatical sentences
+/// are the fresh development negatives (negative-dev.txt).
+fn equiv(dir: &str, n: usize) {
+    use q_lm::subst::{MergeRule, Subst};
+    let judge = Judge::load(dir);
+    let train = read(&format!("{dir}/train.txt"));
+    let n = n.min(train.len());
+    let sub = &train[..n];
+    let sub_set: BTreeSet<&Sentence> = sub.iter().collect();
+    let dev = read(&format!("{dir}/dev.txt"));
+    let deep_seen = read(&format!("{dir}/deep-seen.txt"));
+    let neg = read(&format!("{dir}/negative-dev.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let v = vocab.len() as f64 + 1.0;
+    println!("## {dir}, {n} training sentences\n");
+    println!("| arm | setting | categories | rules | description, bits | development | deeper, corpus words | deeper derivable | fresh ungrammatical derivable | grammatical samples | not in training | deeper samples | learned in |");
+    println!("|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|");
+    let rules = [
+        ("A", MergeRule::Single),
+        ("B", MergeRule::AtLeast(2)),
+        ("B", MergeRule::AtLeast(3)),
+        ("B", MergeRule::AtLeast(5)),
+        ("C", MergeRule::Overlap(0.1)),
+        ("C", MergeRule::Overlap(0.25)),
+        ("C", MergeRule::Overlap(0.5)),
+        ("C'", MergeRule::Jaccard(0.05)),
+        ("C'", MergeRule::Jaccard(0.1)),
+        ("C'", MergeRule::Jaccard(0.25)),
+        ("C'", MergeRule::Jaccard(0.5)),
+    ];
+    let mut best: HashMap<&str, (f64, String)> = HashMap::new();
+    for (arm, rule) in rules {
+        let t = Instant::now();
+        let mut m = Subst::train_rule(sub, &vocab, rule);
+        let structure = t.elapsed().as_secs_f64();
+        eprintln!("{dir} {n} {arm} {rule:?}: {} categories, {} rules, structure in {structure:.1} s", m.categories, m.size());
+        if m.size() > 60_000 {
+            println!("| {arm} | {rule:?} | {} | {} | – | not estimated: over 60,000 rules | | | | | | | structure {structure:.1} s |", m.categories, m.size());
+            continue;
+        }
+        m.em(sub, 20, 1e-3);
+        let secs = t.elapsed().as_secs_f64();
+        let (g, d, _) = m.description_length(sub);
+        let count = |set: &[Sentence]| set.iter().filter(|s| m.probability(s) > 0.0).count();
+        let mut rng = Rng(SAMPLE_SEED);
+        let finished: Vec<Sentence> = (0..SAMPLES).filter_map(|_| m.sample(&mut rng, 200)).collect();
+        let j = judge_all(&judge, &finished, &sub_set);
+        let setting = format!("{rule:?}");
+        println!(
+            "| {arm} | {setting} | {} | {} | {:.0} | {:.4} | {:.4} | {} of {} | {} of {} | {} of {} | {} | {} | {secs:.1} s |",
+            m.categories, m.size(), g + d, floored(&m, &dev, v), floored(&m, &deep_seen, v),
+            count(&deep_seen), deep_seen.len(), count(&neg), neg.len(), j.grammatical, finished.len(), j.novel_grammatical, j.deep_grammatical
+        );
+        let e = best.entry(arm).or_insert((f64::INFINITY, String::new()));
+        if g + d < e.0 {
+            *e = (g + d, setting);
+        }
+    }
+    let mut arms: Vec<_> = best.into_iter().collect();
+    arms.sort_by(|a, b| a.0.cmp(b.0));
+    println!("\nChosen by the shortest description: {}\n", arms.iter().map(|(a, (_, s))| format!("{a} {s}")).collect::<Vec<_>>().join("; "));
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1353,6 +1420,7 @@ fn main() {
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
+        Some("equiv") => equiv(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
         Some("em") => em_curve(args.get(2).map(String::as_str).unwrap_or("data"), args.get(3).and_then(|x| x.parse().ok()).unwrap_or(1000)),

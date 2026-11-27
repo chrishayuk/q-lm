@@ -120,3 +120,19 @@ replaced by a table's city's answer vector.
   and the relation component (SEM-001 version 3) at the answer position
   after block 1 or 2, and replacing block 2's computation. Block 2 is where
   the fact forms.
+
+## Confirmation: worlds 4 to 6
+
+The 18 models were trained on three fresh version-3 worlds, made after this
+experiment's plan. The run is unchanged. Tables:
+[tables/resolve-001-confirm.md](tables/resolve-001-confirm.md).
+
+| | worlds 1 to 3 | worlds 4 to 6 |
+|---|---:|---:|
+| Llama, edited table at block 3: edited city stated | 0.90 (0.67 to 1.00) | **0.92** (0.88 to 1.00) |
+| Llama, at block 4 | 0.91 | 0.92 |
+| Llama, at block 2 | 0.44 | 0.44 |
+| custom, at block 4 | 0.74 | 0.75 |
+| random, matched: gives the edited city | 0.00 to 0.01 | 0.00 to 0.02 |
+
+The result replicates.

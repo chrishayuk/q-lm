@@ -102,3 +102,19 @@ positions: still only activations, but more than one place.
 - The confirmation worlds 4 to 6. They are training; this experiment is
   rerun on them unchanged.
 - Larger models, more relations, real text.
+
+## Confirmation: worlds 4 to 6
+
+The same provider, unchanged, on the 18 confirmation models. Tables:
+[tables/external-001-confirm.md](tables/external-001-confirm.md). Means:
+
+| | Llama, worlds 1 to 3 | Llama, worlds 4 to 6 | custom, 1 to 3 | custom, 4 to 6 |
+|---|---:|---:|---:|---:|
+| relation decoded (arm C) | 0.93 | 0.93 | 0.91 | 0.92 |
+| entity decoded (arm C) | 0.76 | 0.78 | 0.40 | 0.40 |
+| D: edited answer stated | 0.62 | 0.61 | 0.12 | 0.14 |
+| E: new birth fact stated | 0.42 | 0.58 (0 to 1; 4 people a world) | 0.33 | 0.47 |
+| random injection, D and E | 0.00 to 0.03 | 0.01 to 0.03 | 0.00 | 0.00 |
+
+The result replicates, and so does its failure against the plan's
+criteria. Entity decoding is again the bottleneck.

@@ -68,9 +68,117 @@ pub struct Merge {
     pub right: Vec<u32>,
 }
 
+/// When two substrings that share a context are merged (QLM-EQUIV-001).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum MergeRule {
+    /// One shared context is enough (the learner of QLM-003; arm A).
+    Single,
+    /// At least k distinct shared contexts (arm B).
+    AtLeast(usize),
+    /// At least 2 shared contexts, and shared / the smaller context set at
+    /// least theta (arm C).
+    Overlap(f64),
+    /// Shared / the union of the two context sets at least theta (arm C',
+    /// added after a pilot: a frequent string and a rare one that share one
+    /// context are not merged; two rare strings sharing their only context
+    /// are).
+    Jaccard(f64),
+}
+
 impl Subst {
     pub fn train(sentences: &[Vec<String>], vocab: &[String]) -> Subst {
         Subst::train_logged(sentences, vocab, None)
+    }
+
+    /// As `train`, merging by `rule`. Under every rule, whole sentences are
+    /// merged with each other: their shared context is the empty one, and
+    /// their category is the start.
+    ///
+    /// Shared contexts are counted exactly for every pair of substrings that
+    /// occur in a context with at most 200 distinct substrings. A context
+    /// with more (rare, apart from the empty one) contributes only its pairs
+    /// with its first substring. Whole sentences (the empty context) are
+    /// merged with each other in any case.
+    pub fn train_rule(sentences: &[Vec<String>], vocab: &[String], rule: MergeRule) -> Subst {
+        if rule == MergeRule::Single {
+            return Subst::train(sentences, vocab);
+        }
+        let mut words: HashMap<String, u32> = HashMap::new();
+        for w in vocab {
+            let n = words.len() as u32;
+            words.entry(w.clone()).or_insert(n);
+        }
+        let enc: Vec<Vec<u32>> = sentences.iter().map(|s| s.iter().map(|w| words[w]).collect()).collect();
+        let mut ids: HashMap<&[u32], u32> = HashMap::new();
+        let mut ctx_ids: HashMap<(&[u32], &[u32]), u32> = HashMap::new();
+        let mut fillers: Vec<Vec<u32>> = Vec::new(); // context -> distinct substrings
+        let mut seen: std::collections::HashSet<(u32, u32)> = std::collections::HashSet::new();
+        let mut n_ctx: Vec<u32> = Vec::new();
+        for s in &enc {
+            for i in 0..s.len() {
+                for j in i + 1..=s.len() {
+                    let w = &s[i..j];
+                    let n = ids.len() as u32;
+                    let id = *ids.entry(w).or_insert(n);
+                    if n_ctx.len() <= id as usize {
+                        n_ctx.push(0);
+                    }
+                    if i == 0 && j == s.len() {
+                        continue; // the empty context: handled below
+                    }
+                    let cn = ctx_ids.len() as u32;
+                    let c = *ctx_ids.entry((&s[..i], &s[j..])).or_insert(cn);
+                    if c as usize == fillers.len() {
+                        fillers.push(Vec::new());
+                    }
+                    if seen.insert((id, c)) {
+                        n_ctx[id as usize] += 1;
+                        fillers[c as usize].push(id);
+                    }
+                }
+            }
+        }
+        drop(seen);
+        let mut shared: HashMap<(u32, u32), u32> = HashMap::new();
+        for f in &fillers {
+            if f.len() <= 200 {
+                for a in 0..f.len() {
+                    for b in a + 1..f.len() {
+                        let k = if f[a] < f[b] { (f[a], f[b]) } else { (f[b], f[a]) };
+                        *shared.entry(k).or_insert(0) += 1;
+                    }
+                }
+            } else {
+                for &x in &f[1..] {
+                    let k = if x < f[0] { (x, f[0]) } else { (f[0], x) };
+                    *shared.entry(k).or_insert(0) += 1;
+                }
+            }
+        }
+        drop(fillers);
+        let mut parent: Vec<u32> = (0..ids.len() as u32).collect();
+        let sentence_ids: Vec<u32> = enc.iter().map(|s| ids[s.as_slice()]).collect();
+        for w in sentence_ids.windows(2) {
+            let (a, b) = (find(&mut parent, w[0]), find(&mut parent, w[1]));
+            if a != b {
+                parent[a as usize] = b;
+            }
+        }
+        for (&(a, b), &k) in &shared {
+            let ok = match rule {
+                MergeRule::AtLeast(m) => k as usize >= m,
+                MergeRule::Overlap(theta) => k >= 2 && k as f64 / n_ctx[a as usize].min(n_ctx[b as usize]) as f64 >= theta,
+                MergeRule::Jaccard(theta) => k as f64 / (n_ctx[a as usize] + n_ctx[b as usize] - k) as f64 >= theta,
+                MergeRule::Single => true,
+            };
+            if ok {
+                let (x, y) = (find(&mut parent, a), find(&mut parent, b));
+                if x != y {
+                    parent[x as usize] = y;
+                }
+            }
+        }
+        Subst::from_partition(&enc, &words, ids, parent)
     }
 
     /// As `train`, recording every union in `log`, in the order made.
@@ -126,6 +234,32 @@ impl Subst {
             }
         }
         drop(by_context);
+        let ids_u: HashMap<&[u32], u32> = ids;
+        let _ = (strings, occurrences);
+        let mut m = Subst::from_partition(&enc, &words, ids_u, parent);
+        if !logging {
+            m.category_of.clear();
+        }
+        m
+    }
+
+    /// The grammar of a partition of the training substrings: categories,
+    /// rule counts by occurrence, relative-frequency probabilities.
+    fn from_partition(enc: &[Vec<u32>], words: &HashMap<String, u32>, ids: HashMap<&[u32], u32>, mut parent: Vec<u32>) -> Subst {
+        let words = words.clone();
+        let mut strings: Vec<&[u32]> = vec![&[]; ids.len()];
+        for (w, &id) in &ids {
+            strings[id as usize] = w;
+        }
+        let mut occurrences = vec![0u64; ids.len()];
+        for s in enc {
+            for i in 0..s.len() {
+                for j in i + 1..=s.len() {
+                    occurrences[ids[&s[i..j]] as usize] += 1;
+                }
+            }
+        }
+        let logging = true;
         // Number the categories.
         let mut cat_of: HashMap<u32, u32> = HashMap::new();
         let mut cat = vec![0u32; strings.len()];

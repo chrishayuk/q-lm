@@ -83,3 +83,31 @@ confirmation negatives.
 Separately, D and E are reported as **representations**: how many roles
 per string D finds, and how E's substitution weights are spread. A worse
 score with a more faithful structure is still a finding.
+
+## Changes after a pilot, before any arm was judged
+
+1. **Shared contexts are counted exactly.** The first implementation
+   counted them only against the first substring seen in each context. On
+   1,000 left-family sentences, an exact count found:
+   - 216,821 pairs sharing a context;
+   - 97% of them sharing exactly one;
+   - about 6,200 sharing two or more, most of which the approximation
+     missed.
+
+   Contexts with more than 200 distinct substrings keep the old pairing.
+2. **Arms B and C cannot merge rare substrings, so they never reach a
+   grammar.** With exact counts, they leave 10,587 to 13,440 categories at
+   1,000 sentences, and 56,981 to 58,753 at 21,066. Arm A leaves 45 and 40.
+   - The reason: most substrings occur once. A substring with one context
+     can never share two with anything.
+   - The grammars are too large to estimate (over 60,000 rules), and are
+     reported as such. That is a result about the arms, not a failure to
+     run them.
+3. **Arm C′ is added: Jaccard overlap,** shared / (the union of the two
+   context sets) ≥ θ, θ ∈ {0.05, 0.1, 0.25, 0.5}. It is aimed at the
+   failure QLM-LEFT-001 found:
+   - a frequent string and a rare one sharing one context are not merged;
+   - two rare strings sharing their only context are.
+
+   It is chosen within the arm by the shortest description, as B and C
+   are.
