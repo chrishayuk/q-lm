@@ -131,6 +131,19 @@ equal those got by listing the language (to 1e-12).
 | deeper, corpus words only, 100 sentences read word by word | **1.5883** bits/token |
 | time per next-token distribution, one CPU core | 1.36 ms |
 
+**On the grammar learned from 1,000 sentences** (`qlm prefix data 1000`),
+with 2,396 categories and 38,121 rules, every check passes as well:
+- relative difference at most 4.6e-13;
+- chain against inside probability at most 3.7e-13 bits;
+- total variation 0.0056;
+- development 1.0708 bits per token, deeper 1.6003.
+
+But each next-token distribution takes **176 ms**, about 130 times the
+smaller grammar's 1.4 ms. The training saving of the larger grammar is
+paid back in inference. Its slightly better prediction (1.07 against 1.10)
+costs two orders of magnitude at every token. The transformer's inference
+cost has not been measured on the same footing.
+
 On the deeper sentences of known words, the transformer gives 2.82 to 4.93
 bits, depending on size and seed, and gets worse as it is trained on more.
 The learned grammar gives 1.59.
