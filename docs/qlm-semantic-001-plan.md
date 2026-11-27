@@ -1,6 +1,15 @@
 # QLM-SEMANTIC-001 plan: learning relations, not just grammar
 
-Written before any language or learner for it exists.
+Written before any language or learner for it exists, and tightened
+once before implementation (below).
+
+**Tightened before implementation.**
+1. The held-out statements are stated as exceptions to "every fact is in
+   training".
+2. Held-out compositions are balanced so that no frequency shortcut solves
+   them.
+3. Entity-permuted worlds test whether what is learned is reusable
+   machinery or memorised strings.
 
 ## Question
 
@@ -37,8 +46,29 @@ relation, and every fact can be stated in every phrasing of its relation.
 | lives(person → city) | `P lives in K .` / `P is from K .` |
 | lives-on(person → continent), the composition lives ∘ located ∘ continent | `P lives on T .` |
 
-**Texts** are one to three sentences, each a true statement. Every fact is
-stated in at least one phrasing in training.
+**Texts** are one to three sentences, each a true statement.
+
+Every fact is stated in at least one phrasing in training, **except** the
+statements held out below.
+- A held-out capital fact keeps its first phrasing in training and loses
+  its second.
+- A held-out inverse loses every `located` statement for that country's
+  capital, in both phrasings. Its `capital` statements stay.
+- A held-out composition loses every `lives-on` statement for that person.
+  Its `lives`, `located` and `continent` facts stay.
+
+Nothing else is withheld.
+
+**No frequency shortcuts.**
+- Each continent has 6 of the 24 countries, and each city 2 of the 48
+  people. So the most frequent continent or city is right only by chance
+  (1/4, 1/24).
+- The held-out people of the composition test are spread evenly over the
+  continents (3 each).
+- A held-out person's name never appears in the same text as their
+  continent's name.
+- A unigram or bigram model is run and reported as the shortcut baseline.
+  A test it passes is not counted as generalisation.
 
 ## Held out (never in training, in any phrasing)
 
@@ -52,6 +82,20 @@ stated in at least one phrasing in training.
 The held-out sets are disjoint and fixed by the seed. The development and
 confirmation texts are drawn from facts and phrasings that are in training,
 as before.
+
+## Entity-permuted worlds
+
+The whole experiment is run on 3 worlds with the same names and the same
+relation structure. Each assigns the facts differently: which city is
+whose capital, which continent each country is in, where each person
+lives.
+- Every world gets its own corpus and its own split.
+- A learner that has learned the relations should pass the same tests on
+  each world.
+- A result that holds on one world and not the others points at the
+  particular strings, not at the relations.
+
+Results are reported per world and as the mean.
 
 ## Measures
 
