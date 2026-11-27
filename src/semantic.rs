@@ -75,6 +75,13 @@ fn names(n: usize, r: &mut Rng, used: &mut BTreeSet<String>) -> Vec<String> {
 
 impl World {
     pub fn new(seed: u64) -> World {
+        World::with_holdout(seed, true)
+    }
+
+    /// `by_city` false is the first design, which held people out one by
+    /// one and left a city-mate shortcut. It is kept only to study that
+    /// shortcut (`qlm shortcut`).
+    pub fn with_holdout(seed: u64, by_city: bool) -> World {
         let mut nr = Rng(1000);
         let mut used: BTreeSet<String> =
             ["has", "capital", "the", "of", "is", "located", "in", "a", "city", "lies", "on", "lives", "from"]
@@ -119,8 +126,27 @@ impl World {
         }
         let comp_cities: BTreeSet<usize> = cities_by_cont.iter().flat_map(|v| v[..2].iter().copied()).collect();
         let new_cities: BTreeSet<usize> = order_c.iter().map(|&c| capital[c]).filter(|k| !comp_cities.contains(k)).take(2).collect();
-        let held_composition: BTreeSet<usize> = (0..PEOPLE).filter(|p| comp_cities.contains(&lives[*p])).collect();
-        let held_new: BTreeSet<usize> = (0..PEOPLE).filter(|p| new_cities.contains(&lives[*p])).collect();
+        let (held_composition, held_new) = if by_city {
+            (
+                (0..PEOPLE).filter(|p| comp_cities.contains(&lives[*p])).collect::<BTreeSet<usize>>(),
+                (0..PEOPLE).filter(|p| new_cities.contains(&lives[*p])).collect::<BTreeSet<usize>>(),
+            )
+        } else {
+            // The first design: 3 people per continent, then 4 more people.
+            let cont_of = |p: usize| continent[capital.iter().position(|&k| k == lives[p]).unwrap()];
+            let mut ps: Vec<usize> = (0..PEOPLE).collect();
+            shuffle(&mut ps, &mut r);
+            let mut comp = BTreeSet::new();
+            let mut per = vec![0; CONTINENTS];
+            for &p in &ps {
+                if per[cont_of(p)] < 3 {
+                    per[cont_of(p)] += 1;
+                    comp.insert(p);
+                }
+            }
+            let new: BTreeSet<usize> = ps.iter().filter(|p| !comp.contains(p)).take(4).copied().collect();
+            (comp, new)
+        };
         World { countries, cities, continents, people, capital, continent, lives, held_phrasing, held_inverse, held_composition, held_new }
     }
 

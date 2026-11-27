@@ -72,7 +72,8 @@ is [docs/results.md](docs/results.md). Inside–outside convergence,
 rule pruning (QLM-004) and matched inference cost (QLM-PERF-001) are
 [docs/results-qlm004.md](docs/results-qlm004.md). The Llama arm, which
 narrows the depth gap to the grammar to almost nothing at full size, is
-[docs/results-architectures.md](docs/results-architectures.md).
+[docs/results-architectures.md](docs/results-architectures.md). QLM-005,
+three generated languages, is [docs/results-qlm005.md](docs/results-qlm005.md).
 
 ## Direction
 

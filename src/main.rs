@@ -1024,9 +1024,9 @@ fn negatives(dir: &str) {
 /// language: 20,000 training texts, 2,000 development, 2,000 confirmation,
 /// the held-out statements as deep.txt (and deep-seen.txt, for the
 /// transformer scripts), and the fact tests as tests.tsv.
-fn semantic_data(dir: &str, seed: u64) {
+fn semantic_data(dir: &str, seed: u64, by_city: bool) {
     use q_lm::semantic::{Rel, Statement, World};
-    let w = World::new(seed);
+    let w = World::with_holdout(seed, by_city);
     fs::create_dir_all(dir).unwrap();
     let mut r = Rng(seed * 1000 + 1);
     let train = w.corpus(20_000, &mut r);
@@ -1099,7 +1099,7 @@ fn facts(dir: &str, n: usize) {
     let tests: Vec<Vec<String>> = fs::read_to_string(format!("{dir}/tests.tsv")).unwrap().lines().map(|l| l.split('\t').map(String::from).collect()).collect();
     // Scores each test with next(prefix) -> word -> probability.
     let score = |name: &str, next: &mut dyn FnMut(&[String]) -> HashMap<String, f64>| {
-        let mut agg: BTreeMap<String, (usize, usize, f64, f64)> = BTreeMap::new();
+        let mut agg: BTreeMap<String, (usize, usize, f64, f64, f64, usize)> = BTreeMap::new();
         for t in &tests {
             let prefix: Vec<String> = t[1].split(' ').map(String::from).collect();
             let d = next(&prefix);
@@ -1110,21 +1110,31 @@ fn facts(dir: &str, n: usize) {
             let u = 0.001 / (vocab.len() as f64 + 1.0);
             let p = |w: &String| u + if z > 0.0 { 0.999 * d.get(w).copied().unwrap_or(0.0) / z } else { 0.0 };
             let truth = p(&t[2]).max(1e-300);
-            let best = cands.iter().max_by(|a, b| p(a).partial_cmp(&p(b)).unwrap()).unwrap();
+            let top = cands.iter().map(p).fold(0.0, f64::max);
+            let tied = cands.iter().filter(|w| p(w) == top).count();
             let false_mean = cands.iter().filter(|w| **w != t[2]).map(p).sum::<f64>() / (cands.len() - 1) as f64;
-            let e = agg.entry(t[0].clone()).or_insert((0, 0, 0.0, 0.0));
+            let e = agg.entry(t[0].clone()).or_insert((0, 0, 0.0, 0.0, 0.0, 0));
             e.0 += 1;
-            e.1 += (*best == t[2] && p(best) > u) as usize;
+            // Strict: the answer alone at the top. Tie-adjusted: 1/(number
+            // tied) when the answer is among the tied top candidates.
+            e.1 += (p(&t[2]) == top && tied == 1) as usize;
+            e.4 += if p(&t[2]) == top { 1.0 / tied as f64 } else { 0.0 };
+            // An abstention: the model gives the prefix probability 0 and
+            // cannot continue it, so only the floor answers.
+            e.5 += (z <= 0.0) as usize;
             e.2 -= truth.log2();
             e.3 += truth.log2() - false_mean.max(1e-300).log2();
         }
-        for (test, (count, right, bits, contrast)) in agg {
-            println!("| {name} | {test} | {count} | {right} | {:.1}% | {:.2} | {:.2} |", 100.0 * right as f64 / count as f64, bits / count as f64, contrast / count as f64);
+        for (test, (count, right, bits, contrast, adjusted, abstain)) in agg {
+            println!(
+                "| {name} | {test} | {count} | {abstain} | {:.1}% | {:.1}% | {:.2} | {:.2} |",
+                100.0 * right as f64 / count as f64, 100.0 * adjusted / count as f64, bits / count as f64, contrast / count as f64
+            );
         }
     };
     println!("{} training texts; every probability floored (0.999 model + 0.001 uniform)\n", sub.len());
-    println!("| model | test | items | answer ranked first | accuracy | bits on the answer | contrast, bits |");
-    println!("|---|---|---:|---:|---:|---:|---:|");
+    println!("| model | test | items | abstained (prefix underivable) | accuracy, strict | accuracy, tie-adjusted | bits on the answer | contrast, bits |");
+    println!("|---|---|---:|---:|---:|---:|---:|---:|");
     for order in [2, 3] {
         let m = KneserNey::train(sub, &vocab, order, 0.75);
         let mut next = |prefix: &[String]| -> HashMap<String, f64> { vocab.iter().map(|w| (w.clone(), m.p(prefix, w))).collect() };
@@ -1146,6 +1156,61 @@ fn facts(dir: &str, n: usize) {
         pf.next(&r).into_iter().collect()
     };
     score(&format!("grammar, 20 rounds ({} categories, {} rules)", g.categories, g.size()), &mut next);
+}
+
+/// QLM-SEMANTIC-001: the city-mate shortcut of the first design, tested at
+/// the level of the learned categories. DIR is a world made with
+/// `qlm semantic DIR SEED by-person`. For each held-out composition person:
+/// does the learner put them in one category with their city-mate, and does
+/// the grammar then give the city-mate's continent?
+fn shortcut(dir: &str) {
+    use q_lm::prefix::Prefix;
+    use q_lm::subst::Subst;
+    let train = read(&format!("{dir}/train.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let world: Vec<Vec<String>> = fs::read_to_string(format!("{dir}/world.txt")).unwrap().lines().map(|l| l.split(' ').map(String::from).collect()).collect();
+    let lives: HashMap<&str, (&str, &str)> = world.iter().filter(|w| w.len() == 5 && w[1] == "lives").map(|w| (w[0].as_str(), (w[2].as_str(), w[4].as_str()))).collect();
+    let tests: Vec<Vec<String>> = fs::read_to_string(format!("{dir}/tests.tsv")).unwrap().lines().map(|l| l.split('\t').map(String::from).collect()).collect();
+    let continents: Vec<String> = fs::read_to_string(format!("{dir}/types.tsv")).unwrap().lines().find(|l| l.starts_with("continent")).unwrap().split_once('\t').unwrap().1.split(' ').map(String::from).collect();
+    let held: BTreeSet<&str> = tests.iter().filter(|t| t[0] == "composition" || t[0] == "new entity").map(|t| t[1].split(' ').next().unwrap()).collect();
+    let mut log = Vec::new();
+    let mut g = Subst::train_logged(&train, &vocab, Some(&mut log));
+    g.em(&train, 20, 1e-3);
+    let pf = Prefix::new(&g);
+    println!("| person | city-mate | mate's lives-on in training | same category as mate | predicted | answer | right | others in the category with lives-on in training, by continent |");
+    println!("|---|---|---|---|---|---|---|---|");
+    let (mut same_right, mut same, mut diff_right, mut diff) = (0, 0, 0, 0);
+    for t in tests.iter().filter(|t| t[0] == "composition") {
+        let p = t[1].split(' ').next().unwrap();
+        let (city, _) = lives[p];
+        let mate = lives.iter().find(|(q, (c, _))| *q != &p && *c == city).map(|(q, _)| *q).unwrap();
+        let cat = |w: &str| g.category_of.get(&vec![g.word_id(w).unwrap()]).copied();
+        let together = cat(p).is_some() && cat(p) == cat(mate);
+        let mut r = pf.start();
+        for w in t[1].split(' ') {
+            pf.step(&mut r, g.word_id(w).unwrap());
+        }
+        let next = pf.next(&r);
+        let pred = continents.iter().max_by(|a, b| next.get(*a).unwrap_or(&0.0).partial_cmp(next.get(*b).unwrap_or(&0.0)).unwrap()).unwrap();
+        let right = *pred == t[2];
+        if together {
+            same += 1;
+            same_right += right as usize;
+        } else {
+            diff += 1;
+            diff_right += right as usize;
+        }
+        // Everyone in P's category whose lives-on is in training, by their
+        // continent.
+        let mut others: std::collections::BTreeMap<&str, usize> = Default::default();
+        for (q, (_, on)) in &lives {
+            if *q != p && !held.contains(q) && cat(q).is_some() && cat(q) == cat(p) {
+                *others.entry(on).or_insert(0) += 1;
+            }
+        }
+        println!("| {p} | {mate} | {} | {together} | {pred} | {} | {right} | {others:?} |", !held.contains(mate), t[2]);
+    }
+    println!("\nIn one category with the city-mate: {same_right} of {same} right. Not: {diff_right} of {diff} right.");
 }
 
 /// QLM-004: rule pruning by minimum description length. The grammar learned
@@ -1243,7 +1308,8 @@ fn main() {
         Some("family") => family_data(&args[2], &args[3], args[4].parse().unwrap()),
         Some("compare") => compare(&args[2]),
         Some("score") => score(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5..]),
-        Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap()),
+        Some("semantic") => semantic_data(&args[2], args[3].parse().unwrap(), args.get(4).map(String::as_str) != Some("by-person")),
+        Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("negatives") => negatives(&args[2]),
         Some("trace") => trace(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX).min(read(&format!("{}/train.txt", args[2])).len())),
