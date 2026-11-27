@@ -77,3 +77,30 @@ million bindings were exactly that.
   bindings;
 - **or** it is within 0.005 bits of E overall with at most half E's
   bindings.
+
+## Arms F and G, specified before running (after the storage control and arm G-hard)
+
+All arms run with weights by position, at 100,000 TinyStories sentences,
+in the v2 mixture.
+
+| arm | what the second key holds | storage |
+|---|---|---|
+| P (done) | independent pairs (v, x_{t−d}): E's 18 templates | 7.24 M bindings |
+| G-hard (done) | the class P(c \| h) predicts, then P(w \| c, x_{t−d}) | 1.40 M |
+| **J** | joint keys (v, x_{t−d1}, x_{t−d2}) for (d1, d2) in {(2,3), (2,4), (3,4), (2,5), (3,6)}, keeping a key only if seen at least 3 times | reported |
+| **G-soft** | weighted intermediate: soft memberships of each word in its top 4 classes; P(w \| h) = Σ_c P(c \| h) P(w \| c, x_{t−d}), counted with fractional memberships | reported |
+| **G-bind** | a kept binding: x* = the most recent earlier word whose class is entity-like; P(w \| h) = P(c \| h) P(w \| c, x*). Entity-like classes are the top 16 by held-out gain as distant keys on the training sentences' last 10% | reported |
+
+**Measured:**
+- bits on all positions, 2 to 4, and 5+;
+- stored bindings, and model bytes (bindings × 12);
+- learning time;
+- milliseconds per next-token distribution.
+
+**What would count:**
+- **Successive computation beats storage** if G-soft or G-bind either:
+  - beats P at positions 5+ by at least 0.01 with no more bindings; or
+  - is within 0.005 of P overall with at most half P's bindings.
+- **Joint keys help** if J beats P at positions 5+ by at least 0.01.
+- **Confirmation:** the best arm and P are run once on a fresh split,
+  development 7,001 to 11,000, never used before.
