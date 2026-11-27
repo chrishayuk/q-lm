@@ -1460,6 +1460,24 @@ fn baselines(dir: &str) {
     }
 }
 
+/// Per-token probabilities of the Kneser–Ney word model (order `order`,
+/// trained on the first n sentences) for the first 3,000 development
+/// sentences, END included: one line per sentence, space-separated. For the
+/// v2 prototype's interpolation.
+fn knprobs(dir: &str, n: usize, order: usize, out: &str) {
+    let train = read(&format!("{dir}/train.txt"));
+    let dev = read(&format!("{dir}/dev.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let m = KneserNey::train(&train[..n.min(train.len())], &vocab, order, 0.75);
+    let lines = dev.iter().take(3000).map(|s| {
+        (0..=s.len())
+            .map(|i| format!("{:e}", m.p(&s[..i], s.get(i).map(|x| x.as_str()).unwrap_or(END))))
+            .collect::<Vec<_>>()
+            .join(" ")
+    });
+    write(out, lines);
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1559,6 +1577,7 @@ fn main() {
         Some("shortcut") => shortcut(&args[2]),
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
+        Some("knprobs") => knprobs(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5]),
         Some("baselines") => baselines(&args[2]),
         Some("scale") => scale(&args[2], args[3].parse().unwrap()),
         Some("equiv") => equiv(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
