@@ -1,0 +1,12 @@
+kind right seed 1
+S -> X M V X
+S -> X X V
+X -> N
+X -> E
+E -> C S   (the S here is one level deeper)
+N : rofa lage fanu
+V : tufu kako keme kiro
+A : bosu dozi bufo luma
+C : tegi
+M : funo
+P : dalu

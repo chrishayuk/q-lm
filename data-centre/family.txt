@@ -1,0 +1,14 @@
+kind centre seed 1
+S -> X X V
+S -> X V P X
+S -> V X M X
+X -> N
+X -> E
+E -> C S D   (the S here is one level deeper)
+N : ribi pamu lola
+V : lovo nuzu kipe posu
+A : bare vovu biro
+C : raso
+D : dera
+M : nere
+P : fuvu

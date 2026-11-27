@@ -1,0 +1,12 @@
+kind left seed 1
+S -> X V M X
+S -> V X M X
+S -> X V
+X -> N
+X -> E
+E -> S C   (the S here is one level deeper)
+N : toza bine zagu
+V : kake rota gize
+A : gope vasi
+C : deka
+M : bopu

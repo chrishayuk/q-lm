@@ -15,6 +15,7 @@
 //! which is the true distribution of the corpus) and E17 (the report's rules
 //! read as an open grammar, which knows the grammar).
 
+pub mod family;
 pub mod ktails;
 pub mod ngram;
 pub mod prefix;
