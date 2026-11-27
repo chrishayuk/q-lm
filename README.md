@@ -99,7 +99,10 @@ merges): [docs/results-qlm-scale-001-tinystories.md](docs/results-qlm-scale-001-
 Q-LM v2 on TinyStories: bounded-context classes beat the 5-gram, and the
 transformer with little data ([docs/results-qlm-v2-e1-e3.md](docs/results-qlm-v2-e1-e3.md));
 abstractions-as-contexts (E4) add nothing beyond ensembling
-([docs/results-qlm-v2-e4.md](docs/results-qlm-v2-e4.md)).
+([docs/results-qlm-v2-e4.md](docs/results-qlm-v2-e4.md)); counted
+association attention adds nothing, and the transformer's lead splits into
+local generalisation and long context
+([docs/results-qlm-attention-001.md](docs/results-qlm-attention-001.md)).
 
 ## Direction
 

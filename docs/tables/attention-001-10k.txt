@@ -1,0 +1,7 @@
+n=10000 arm=A split=select | all positions 4.9740 | positions 6+ 4.7958 | parameter None | weights [0.687, 0.068, 0.08, 0.123, 0.043] | 6s
+n=10000 arm=B split=select | all positions 4.9970 | positions 6+ 4.7960 | parameter None | weights [0.648, 0.077, 0.091, 0.135, 0.049] | 6s
+n=10000 arm=C split=select | all positions 4.9738 | positions 6+ 4.7954 | parameter None | weights [0.686, 0.068, 0.08, 0.123, 0.042, 0.001] | 8s
+n=10000 arm=D split=select | all positions 4.9737 | positions 6+ 4.7954 | parameter 0.85 | weights [0.686, 0.068, 0.08, 0.123, 0.042, 0.001] | 11s
+n=10000 arm=E split=select | all positions 4.9739 | positions 6+ 4.7956 | parameter {'tau': 0.5} | weights [0.687, 0.068, 0.08, 0.123, 0.042, 0.001] | 11s
+n=10000 arm=F split=select | all positions 4.9740 | positions 6+ 4.7957 | parameter {'tau': 0.05, 'slope': 0.6} | weights [0.687, 0.068, 0.08, 0.123, 0.042, 0.0] | 19s
+n=10000 arm=G split=select | all positions 4.9740 | positions 6+ 4.7957 | parameter {'tau': 0.05, 'slope': 0.6} | weights [0.687, 0.068, 0.08, 0.123, 0.042, 0.0, 0.0] | 21s
