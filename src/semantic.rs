@@ -238,7 +238,19 @@ impl World {
             if people_in.iter().any(|q| self.held_composition.contains(q) && continents_in.contains(&self.lives_on(*q))) {
                 continue;
             }
-            if text.iter().all(|s| self.allowed(s)) {
+            // A held-out inverse: the capital may never come before its
+            // country anywhere in a text, in any statement. (The first
+            // version allowed "C has capital K . C is in T .", whose "K . C"
+            // gave the inverse away: docs/qlm-semantic-001-plan.md.)
+            let leaks = text.iter().enumerate().any(|(i, a)| {
+                matches!(a.rel, Rel::Capital) && self.held_inverse.contains(&a.subject)
+                    && text[i + 1..].iter().any(|b| match b.rel {
+                        Rel::Capital | Rel::Continent => b.subject == a.subject,
+                        Rel::Located => b.object == a.subject,
+                        _ => false,
+                    })
+            });
+            if !leaks && text.iter().all(|s| self.allowed(s)) {
                 return text;
             }
         }

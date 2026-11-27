@@ -161,3 +161,18 @@ grammatical if every sentence fits a phrasing.
    |---|---:|---:|
    | grammar, 20 rounds | 11 of 12 | 14.75 |
    | Kneser–Ney 3-gram | 3 of 12 (chance) | −0.02 |
+
+2. **A held-out inverse may never have its capital before its country,
+   anywhere in a text.**
+   - **The evidence.** In the first version, two-statement texts such as
+     `C has capital K . C is in T .` put the city directly before its
+     country (`K . C`). They did so for all 6 held-out pairs in all three
+     worlds.
+   - **What it did to the test.** The transformers scored 87% to 95% on
+     inverse. That can be learned from the adjacency, without reversing
+     anything. The grammar scored 0%, abstaining on every item.
+   - **The change.** A text is rejected if it holds a held-out country's
+     capital statement followed by any later statement whose subject is
+     that country.
+   - **When.** Made before the second version was trained. The first
+     version's results are kept as `docs/tables/facts-*-v1.md`.
