@@ -86,7 +86,9 @@ how it reaches the answer position (a few attention heads):
 a relation component separable from the entity, and a recombined query, in
 Llama: [docs/results-larql-qlm-sem-001-v3.md](docs/results-larql-qlm-sem-001-v3.md);
 where the fact is looked up (at the answer position, not the entity's):
-[docs/results-larql-qlm-enrich-001.md](docs/results-larql-qlm-enrich-001.md).
+[docs/results-larql-qlm-enrich-001.md](docs/results-larql-qlm-enrich-001.md);
+where the answer forms, and a fact edited from an external table with no
+weight changed: [docs/results-larql-qlm-resolve-001.md](docs/results-larql-qlm-resolve-001.md).
 
 ## Direction
 
