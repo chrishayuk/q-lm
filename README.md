@@ -94,6 +94,8 @@ the bottleneck; facts edited and added at 42 to 62%):
 [docs/results-larql-qlm-external-001.md](docs/results-larql-qlm-external-001.md).
 How the learner's cost grows (the model stops growing; its bookkeeping
 does not): [docs/results-qlm-scale-001-kind1.md](docs/results-qlm-scale-001-kind1.md).
+On TinyStories it breaks (whole-sentence contexts never recur; nothing
+merges): [docs/results-qlm-scale-001-tinystories.md](docs/results-qlm-scale-001-tinystories.md).
 
 ## Direction
 

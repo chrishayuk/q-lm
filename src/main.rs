@@ -1380,6 +1380,10 @@ fn scale(dir: &str, n: usize) {
     let t = Instant::now();
     let mut m = Subst::train(sub, &vocab);
     let structure = t.elapsed().as_secs_f64();
+    if m.size() > 200_000 {
+        println!("| {n} | {substrings} | {} | {} | – | – | {structure:.2} | not estimated: over 200,000 rules | – | – |", m.categories, m.size());
+        return;
+    }
     let t = Instant::now();
     m.em(sub, 20, 1e-3);
     let estimation = t.elapsed().as_secs_f64();
