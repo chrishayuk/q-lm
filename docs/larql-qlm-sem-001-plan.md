@@ -1,6 +1,8 @@
 # LARQL-QLM-SEM-001 plan: does a fact have a state of its own, apart from its wording?
 
-Written before any measurement. It runs on the version-2 semantic worlds
+Written before any measurement, and amended once before any measurement
+(the last section) to tell a fact state from an answer state, an entity
+state and a query state. It runs on the version-2 semantic worlds
 (QLM-SEMANTIC-001, change 2), after their transformers are trained.
 
 ## Question
@@ -71,3 +73,68 @@ All at the last prompt position.
 Models: Llama and the custom transformer, seeds 1 to 3, on the three
 version-2 worlds. The same layer-by-layer check of LARQL against PyTorch as
 in GROUP-001 comes first, on one model per architecture.
+
+## Amendment before measurement: fact, entity, query or answer?
+
+Converging states and successful transplants could mean that the model
+represents **the answer** (K), not **the binding** capital(C, K). The
+amendment separates four kinds of state:
+- lexical (the words);
+- entity (C);
+- query (capital of C, answer not yet chosen);
+- answer (K).
+
+**Same answer, different relation.** Every city in the world is a capital
+and has two residents. So for a resident P of K, `P lives in` and
+`C has capital` share the answer K through different relations.
+- Convergence (measure 1) is reported for same-fact pairs, and for
+  same-answer, different-relation pairs.
+- A transplant from `P lives in` into `the capital of C' is` is a further
+  donor.
+- If the same-answer pairs converge as much as same-fact pairs, and
+  transplant as well, the shared state is the answer's, not the fact's.
+
+**Probes that generalise past their training entities.** Measure 2 is
+replaced by a regression from the state to the answer's output embedding
+(the row of the output head for K). It is fitted on 18 countries' prompts,
+in wording 1, and tested on the other 6, in both wordings, by the nearest
+city. A probe that memorises 24 labels cannot do this. One that finds a
+reusable map from state to answer can.
+
+**Earlier positions.** The transplant is also done at the country's own
+position (C in `the capital of C' is`), where the relation still has to be
+applied after it. Moving C there and getting K tests an entity state, with
+the query computed afterwards. Moving the final position tests a resolved
+state.
+
+**The final layer is a positive control.** A state transplanted
+immediately before the output head carries its prediction with it by
+construction. Results are read at the layers before it. A transfer only at
+the last layer shows nothing about relations.
+
+**Partial transplants: relation without entity.** At the last position:
+- The **relation subspace** is spanned by the difference between the mean
+  states of `C has capital` and `C is in` (capital against continent) over
+  the 18 fitting countries, plus the leading directions of their per-country
+  differences: the top 3 by variance.
+- The **entity subspace** is spanned by the leading directions of the
+  country-mean differences: the top 10.
+- Swapping only the relation component from `C is in` into `C has capital`,
+  for the same C, asks whether the output switches from C's capital to C's
+  continent with C kept.
+- Swapping only the entity component from `C2 has capital` into `C has
+  capital` asks whether it switches to C2's capital with the relation kept.
+- Controls are random subspaces of the same dimension. All of it is fitted
+  on the 18 countries and measured on the other 6.
+
+**What would count, added:**
+- **A relation state separable from the entity:** the relation-only swap
+  makes C's continent the most probable continent, ahead of the capital
+  (most probable over cities plus continents), in at least half of the 6
+  held-out countries, at some layer before the last. The random-subspace
+  control does so in at most one.
+- **An entity state separable from the relation:** the same, for the
+  entity-only swap giving C2's capital.
+- **A fact state, not an answer state:** the same-fact similarity exceeds
+  the same-answer, different-relation similarity by at least 0.1 at the
+  layer where measure 1 peaks.
