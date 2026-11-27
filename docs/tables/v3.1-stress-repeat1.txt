@@ -1,0 +1,33 @@
+data-v3/stress/A-s1-T1 (A, T1): 240 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 2 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 2
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8964 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 0.375 | 1.000
+         4 | 0.375 | 1.000
+         8 | 0.375 | 1.000
+data-v3/stress/A-s2-T1 (A, T1): 240 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 2 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 2
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8964 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 0.542 | 1.000
+         4 | 0.542 | 1.000
+         8 | 0.542 | 1.000
+data-v3/stress/A-s3-T1 (A, T1): 240 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 2 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 2
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8964 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 0.333 | 1.000
+         4 | 0.333 | 1.000
+         8 | 0.333 | 1.000

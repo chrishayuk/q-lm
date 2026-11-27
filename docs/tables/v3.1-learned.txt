@@ -1,0 +1,210 @@
+data-v3/A-deep-s1-T1 (A, T1): 340 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.83; _ is from _ . ~ _ lives in _ . 0.79
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (244 entries, 9218 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-deep-s2-T1 (A, T1): 349 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.96; _ is from _ . ~ _ lives in _ . 0.85
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (244 entries, 9218 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-deep-s3-T1 (A, T1): 345 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.88; _ is from _ . ~ _ lives in _ . 0.83
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (244 entries, 9218 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-s1-T1 (A, T1): 343 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 4 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is from _ . ~ _ lives in _ . 0.86; _ is a city of _ . ~ _ is located in _ . 0.83
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8965 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/A-s2-T1 (A, T1): 346 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 4 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.96; _ is from _ . ~ _ lives in _ . 0.86
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8965 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/A-s3-T1 (A, T1): 341 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 4 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is from _ . ~ _ lives in _ . 0.85; _ is a city of _ . ~ _ is located in _ . 0.79
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (240 entries, 8965 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/B-s1-T1 (B, T1): 5100 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5100 entries, 176891 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s2-T1 (B, T1): 5100 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5100 entries, 177005 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s3-T1 (B, T1): 5100 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 0 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5100 entries, 176929 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/A-deep-s1-T2 (A, T2): 412 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.83; _ is from _ . ~ _ lives in _ . 0.79
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (316 entries, 11795 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-deep-s2-T2 (A, T2): 421 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.96; _ is from _ . ~ _ lives in _ . 0.85
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (316 entries, 11795 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-deep-s3-T2 (A, T2): 417 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 150 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.88; _ is from _ . ~ _ lives in _ . 0.83
+  bindings: 244 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (316 entries, 11795 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | depth d4 | distractor d1
+         1 | 0.000 | 0.000 | 1.000
+         2 | 0.000 | 0.000 | 1.000
+         3 | 1.000 | 0.000 | 1.000
+         4 | 1.000 | 1.000 | 1.000
+         8 | 1.000 | 1.000 | 1.000
+data-v3/A-s1-T2 (A, T2): 415 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is from _ . ~ _ lives in _ . 0.86; _ is a city of _ . ~ _ is located in _ . 0.83
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (312 entries, 11527 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/A-s2-T2 (A, T2): 418 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is a city of _ . ~ _ is located in _ . 0.96; _ is from _ . ~ _ lives in _ . 0.86
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (312 entries, 11527 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/A-s3-T2 (A, T2): 413 distinct sentences, 0 unparsed; learned in 0.01s
+  entities: 148 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 5 learned; 4 of 4 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 2 of 2
+  overlaps above 0.05: _ is from _ . ~ _ lives in _ . 0.85; _ is a city of _ . ~ _ is located in _ . 0.79
+  bindings: 240 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (312 entries, 11527 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d3 | distractor d1
+         1 | 0.000 | 1.000
+         2 | 0.000 | 1.000
+         3 | 1.000 | 1.000
+         4 | 1.000 | 1.000
+         8 | 1.000 | 1.000
+data-v3/B-s1-T2 (B, T2): 5235 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5235 entries, 181606 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s2-T2 (B, T2): 5235 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5235 entries, 181720 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000
+data-v3/B-s3-T2 (B, T2): 5235 distinct sentences, 0 unparsed; learned in 0.08s
+  entities: 1026 learned, precision 1.000, recall 1.000; entity merges 0 (identities are kept by construction)
+  relations: 6 learned; 5 of 5 true relations recovered exactly; 0 groups merge different relations; 1 other (e.g. composed); paraphrases grouped 0 of 0
+  bindings: 5100 learned (one-hop relations), precision 1.000, recall 1.000
+  execution over learned knowledge (5235 entries, 181644 bytes serialised, whole learned model); gate worst |sum - 1| 0.0e+00
+    passes | compose d2 | compose d3 | compose d5 | depth d7
+         1 | 0.000 | 0.000 | 0.000 | 0.000
+         2 | 1.000 | 0.000 | 0.000 | 0.000
+         3 | 1.000 | 1.000 | 0.000 | 0.000
+         4 | 1.000 | 1.000 | 0.000 | 0.000
+         8 | 1.000 | 1.000 | 1.000 | 1.000

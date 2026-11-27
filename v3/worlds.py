@@ -17,7 +17,7 @@ may read it.
 """
 import json, os, random, sys
 
-REPEAT = 4  # each one-hop fact, and each composed training answer, this many times
+REPEAT = int(os.environ.get("REPEAT", 4))  # each one-hop fact, and each composed training answer, this many times
 
 
 def names(n, rng, used):
@@ -56,9 +56,7 @@ def task_a(rng, deep):
     for t in T:
         on = [p for p in P if rel["continent"][rel["located"][rel["lives"][p]]] == t]
         held.update(rng.sample(on, len(on) // 4))
-    words = {"lives": "{} lives in {} .", "located": "{} is located in {} .", "continent": "{} is in {} .",
-             "hemisphere": "{} lies in {} .", "born": "{} was born in {} ."}
-    facts = [words[r].format(s, o) for r in rel for s, o in rel[r].items()]
+    facts = [(r, s, o) for r in rel for s, o in rel[r].items()]
 
     def lives_on(p):
         return rel["continent"][rel["located"][rel["lives"][p]]]
@@ -69,24 +67,30 @@ def task_a(rng, deep):
     tests += [("A", "distractor", f"{p} was born in", rel["born"][p], 1) for p in sorted(held)]
     if deep:
         tests += [("A", "depth", f"{p} lives in hemisphere", rel["hemisphere"][lives_on(p)], 4) for p in sorted(held)]
-    world = {"task": "A", "deep": deep, "relations": rel, "held": sorted(held), "types": {"P": P, "K": K, "C": C, "T": T, "H": H}}
+    world = {"task": "A", "deep": deep, "relations": rel, "held": sorted(held), "types": {"P": P, "K": K, "C": C, "T": T, "H": H},
+             "phrasings": {r: PHRASE_A[r] for r in rel}}
     return facts, comp_text, tests, world
 
 
+# Each fact, at each repetition, is written in one of its relation's phrasings.
+PHRASE_A = {"lives": ["{} lives in {} .", "{} is from {} ."], "located": ["{} is located in {} .", "{} is a city of {} ."],
+            "continent": ["{} is in {} ."], "hemisphere": ["{} lies in {} ."], "born": ["{} was born in {} ."]}
 KINDS = ["red", "blue", "green", "yellow", "black", "white"]
 RELS = ["points to", "faces", "holds", "calls"]
 
 
 def task_b(rng):
     used = set()
-    rule = dict(zip(KINDS[:4], RELS))  # the program: kind -> relation; black and white stop
-    terminal = KINDS[4:]
+    kinds, rels = KINDS[:], RELS[:]
+    rng.shuffle(kinds); rng.shuffle(rels)  # the mapping differs for every world
+    rule = dict(zip(kinds[:4], rels))  # the program: kind -> relation; the other two kinds stop
+    terminal = kinds[4:]
     kind, edges, starts = {}, {}, []
 
     def path(length):
         nodes = names(length + 1, rng, used)
         for i, v in enumerate(nodes):
-            kind[v] = rng.choice(terminal) if i == length else rng.choice(KINDS[:4])
+            kind[v] = rng.choice(terminal) if i == length else rng.choice(kinds[:4])
             edges[v] = {}
         for i in range(length):
             edges[nodes[i]][rule[kind[nodes[i]]]] = nodes[i + 1]
@@ -101,13 +105,13 @@ def task_b(rng):
     held = set()
     for L in (2, 3, 5):
         held.update(p[0] for p in rng.sample(paths[L], 15))
-    facts = [f"{v} is {kind[v]} ." for v in allnodes] + [f"{v} {r} {o} ." for v in allnodes for r, o in edges[v].items()]
+    facts = [("is", v, kind[v]) for v in allnodes] + [(r, v, o) for v in allnodes for r, o in edges[v].items()]
     end = {p[0]: (p[-1], L) for L, ps in paths.items() for p in ps}
     comp_text = [f"from {s} the end is {e} ." for s, (e, L) in end.items() if s not in held and L != 7]
     tests = [("B", "compose", f"from {s} the end is", e, L) for s, (e, L) in sorted(end.items()) if s in held]
     tests += [("B", "depth", f"from {s} the end is", e, L) for s, (e, L) in sorted(end.items()) if L == 7]
     world = {"task": "B", "rule": rule, "terminal": terminal, "kind": kind, "edges": edges, "held": sorted(held),
-             "types": {"node": allnodes}}
+             "types": {"node": allnodes, "kind": KINDS}, "phrasings": {r: ["{} " + r + " {} ."] for r in ["is"] + RELS}}
     return facts, comp_text, tests, world
 
 
@@ -116,9 +120,10 @@ def main():
     rng = random.Random(seed)
     facts, comp, tests, world = task_b(rng) if task == "B" else task_a(rng, task == "A-deep")
     world["regime"] = regime
-    text = facts * REPEAT + (comp * REPEAT if regime == "T2" else [])
+    say = lambda f: rng.choice(world["phrasings"][f[0]]).format(f[1], f[2])
+    text = [say(f) for f in facts for _ in range(REPEAT)] + (comp * REPEAT if regime == "T2" else [])
     rng.shuffle(text)
-    dev = facts[:]
+    dev = [say(f) for f in facts]
     rng.shuffle(dev)
     os.makedirs(out, exist_ok=True)
     for f in (f"{out}/train.txt", f"{out}/train-{len(text)}.txt"):
