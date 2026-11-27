@@ -84,7 +84,9 @@ computed): [docs/results-larql-qlm-sem-001-v2.md](docs/results-larql-qlm-sem-001
 how it reaches the answer position (a few attention heads):
 [docs/results-larql-qlm-transport-001.md](docs/results-larql-qlm-transport-001.md);
 a relation component separable from the entity, and a recombined query, in
-Llama: [docs/results-larql-qlm-sem-001-v3.md](docs/results-larql-qlm-sem-001-v3.md).
+Llama: [docs/results-larql-qlm-sem-001-v3.md](docs/results-larql-qlm-sem-001-v3.md);
+where the fact is looked up (at the answer position, not the entity's):
+[docs/results-larql-qlm-enrich-001.md](docs/results-larql-qlm-enrich-001.md).
 
 ## Direction
 

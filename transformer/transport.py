@@ -77,7 +77,11 @@ class Custom:
             for k, bb, p, v in [e for e in edits if e[0] == "mid" and e[1] == b]:
                 x = x.clone(); x[p] = v
             rec["mid"].append(x.clone())
-            x = x + blk.mlp(blk.ln2(x))
+            f = blk.mlp(blk.ln2(x))
+            for e in [e for e in edits if e[0] == "ffn" and e[1] == b]:
+                f = f.clone(); f[e[2]] = e[3]
+            rec.setdefault("ffn", []).append(f.clone())
+            x = x + f
             for k, bb, p, v in [e for e in edits if e[0] == "out" and e[1] == b]:
                 x = x.clone(); x[p] = v
             rec["out"].append(x.clone())
@@ -146,7 +150,16 @@ class Llama:
                 rec["out"].append(t[0].clone())
                 return (t,) + tuple(o[1:]) if isinstance(o, tuple) else t
 
+            def mlp_hook(mod, i, o, b=b):
+                t = o.clone()
+                for e in edits:
+                    if e[0] == "ffn" and e[1] == b:
+                        t[0, e[2]] = e[3]
+                rec.setdefault("ffn", []).append(t[0].clone())
+                return t
+
             hooks += [
+                layer.mlp.register_forward_hook(mlp_hook),
                 layer.register_forward_pre_hook(pre, with_kwargs=True),
                 layer.self_attn.o_proj.register_forward_pre_hook(zpre),
                 layer.self_attn.register_forward_hook(attn_hook),
@@ -162,6 +175,8 @@ class Llama:
         return self.hf.model.layers[b].self_attn.o_proj.weight[:, h * hd:(h + 1) * hd] @ zvec
 
 
+if os.environ.get("TRANSPORT_CLASSES_ONLY") == "1":
+    raise SystemExit
 M = Llama(True) if NAME.startswith("llama") else Custom(True)
 if isinstance(M, Custom):
     ref = M.m(prompt(COUNTRIES[0]))[0, -1].double()
