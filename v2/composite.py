@@ -353,7 +353,9 @@ def gate(models, n_prefixes=12):
     return worst, len(prefixes)
 
 
-gate_worst, gate_n = gate(models[:3] if models else []) if os.environ.get("NO_GATE") != "1" else (float("nan"), 0)
+# Every added component and every baseline class model (the 5-gram's
+# normalisation is checked in the Rust crate's own tests).
+gate_worst, gate_n = gate(list(models) + list(classes)) if os.environ.get("NO_GATE") != "1" else (float("nan"), 0)
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
 fit = range(0, 1000)
 evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000)}[a.split]
