@@ -44,7 +44,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("dir")
 ap.add_argument("n", type=int)
 ap.add_argument("--arm", default="E")
-ap.add_argument("--split", default="select", choices=["select", "confirm"])
+ap.add_argument("--split", default="select", choices=["select", "confirm", "confirm2"])
 ap.add_argument("--lam", type=float, default=1.0)
 ap.add_argument("--buckets", action="store_true", help="mixture weights per position bucket")
 ap.add_argument("--keys", default="", help="for arm R or V: comma-separated templates, e.g. w2,w3,c2")
@@ -69,6 +69,11 @@ def key_of(tmpl, ids, t):
     """The key for predicting ids[t] (ids starts with the sentence's words);
     None if the history is too short."""
     k, d = tmpl
+    if k == "j":  # joint: (v, x_{t-d1}, x_{t-d2})
+        d1, d2 = d
+        if t - max(d1, d2) < 0:
+            return None
+        return ("j", ids[t - 1], ids[t - d1], ids[t - d2])
     if RANDOM and t >= 2:
         # A pseudo-random distance in 2..t, fixed by the sentence and the
         # position: the same storage, no consistent addressing.
@@ -120,6 +125,121 @@ class Successive:
         return out
 
 
+class SuccessiveSoft:
+    """Arm G-soft: P(w | h) = sum over w's classes c of P(c | h) P(w | c, x_{t-d}),
+    with soft memberships (top 4) and fractional counts."""
+
+    def __init__(self, d, cm, mem):
+        self.d, self.cm, self.mem = d, cm, mem
+        C = cm.C
+        self.c = collections.defaultdict(collections.Counter)
+        pw = np.zeros((C, V))
+        for w, lst in mem.items():
+            for c, x in lst:
+                pw[c, w] = core.counts[w] * x
+        self.pw = pw / (pw.sum(1, keepdims=True) + 1e-300)
+        for s in core.enc:
+            for t in range(len(s)):
+                if t - d < 0:
+                    continue
+                for c, x in mem.get(s[t], []):
+                    self.c[(c, s[t - d])][s[t]] += x
+        # Fractional counts: the mass the discount removes from a key is
+        # sum of min(count, D), not D per word, so the backoff gets exactly that.
+        self.ct = {k: (sum(c.values()), sum(min(x, D_) for x in c.values())) for k, c in self.c.items()}
+        self.bindings = sum(len(c) for c in self.c.values())
+
+    def probs(self, s):
+        ids = [wid[x] for x in s]
+        cm = self.cm
+        hist = [cm.START_C, cm.START_C]
+        out = []
+        for t in range(len(ids) + 1):
+            if t == len(ids):
+                out.append(max(cm.p_tri(cm.END_C, hist[-2], hist[-1]), 1e-12))
+                break
+            w = ids[t]
+            if w not in self.mem:
+                out.append(max(cm.p_tri(cm.UNK_C, hist[-2], hist[-1]) * cm.Pw[cm.UNK_C, w], 1e-12))
+            else:
+                p = 0.0
+                for c, _ in self.mem[w]:
+                    pc = cm.p_tri(c, hist[-2], hist[-1])
+                    base = self.pw[c, w]
+                    key = (c, ids[t - self.d]) if t - self.d >= 0 else None
+                    if key in self.ct:
+                        tot, removed = self.ct[key]
+                        base = max(self.c[key][w] - D_, 0) / tot + removed / tot * base
+                    p += pc * base
+                out.append(max(p, 1e-12))
+            hist.append(cm.hard[w])
+        return out
+
+
+class SuccessiveBind:
+    """Arm G-bind: P(w | h) = P(c(w) | h) P(w | c(w), x*), x* the most recent
+    earlier word (distance >= 2) whose class is entity-like."""
+
+    def __init__(self, cm, entity):
+        self.cm, self.entity = cm, entity
+        self.c = collections.defaultdict(collections.Counter)
+        for s in core.enc:
+            seq = s + [END]
+            for t in range(len(seq)):
+                x = self.slot(seq, t)
+                if x is None:
+                    continue
+                w = seq[t]
+                cw = cm.END_C if w == END else cm.hard[w]
+                self.c[(cw, x)][w] += 1
+        self.ct = {k: (sum(c.values()), len(c)) for k, c in self.c.items()}
+        self.bindings = sum(len(c) for c in self.c.values())
+
+    def slot(self, seq, t):
+        for i in range(t - 2, -1, -1):
+            if self.cm.hard[seq[i]] in self.entity:
+                return seq[i]
+        return None
+
+    def probs(self, s):
+        ids = [wid[x] for x in s]
+        seq = ids + [END]
+        base = self.cm.probs(s)
+        out = []
+        for t in range(len(seq)):
+            w = seq[t]
+            cw = self.cm.END_C if w == END else self.cm.hard[w]
+            pwc = self.cm.Pw[cw, w]
+            x = self.slot(seq, t)
+            if x is None or (cw, x) not in self.ct or pwc == 0:
+                out.append(base[t])
+                continue
+            tot, nd = self.ct[(cw, x)]
+            p_in = max(self.c[(cw, x)][w] - D_, 0) / tot + D_ * nd / tot * pwc
+            out.append(max(base[t] / pwc * p_in, 1e-12))
+        return out
+
+
+def entity_classes(cm, k=16):
+    """The k classes whose words, as the distant item of (class of v, word
+    d back) keys, d = 2..8, give the most held-out gain per occurrence (last
+    10% of the training sentences, counted on the first 90%)."""
+    cut = int(0.9 * len(core.enc))
+    fitS, holdS = core.enc[:cut], core.enc[cut:]
+    base = Model(None, fitS)
+    gain, cnt = collections.Counter(), collections.Counter()
+    for d in range(2, 9):
+        m = Model(("cw", d), fitS)
+        for s in holdS:
+            seq = s + [END]
+            for t in range(d, len(seq)):
+                x = seq[t - d]
+                gain[cm.hard[x]] += math.log2(max(m.p(seq, t), 1e-12)) - math.log2(max(base.p(seq, t), 1e-12))
+                cnt[cm.hard[x]] += 1
+    score = {c: gain[c] / cnt[c] for c in cnt if cnt[c] >= 200}
+    return set(sorted(score, key=lambda c: -score[c])[:k])
+
+
 class Model:
     """P(w | v, key), backing off to the bigram P(w | v), both counted on `sents`."""
 
@@ -138,6 +258,8 @@ class Model:
                 if key is not None:
                     self.c[key][seq[t]] += 1
         self.N = sum(self.uni.values())
+        if tmpl and tmpl[0] == "j":
+            self.c = collections.defaultdict(collections.Counter, {k: c for k, c in self.c.items() if sum(c.values()) >= 3})
         self.ct = {k: (sum(c.values()), len(c)) for k, c in self.c.items()}
         self.bt = {k: (sum(c.values()), len(c)) for k, c in self.bi.items()}
         self.bindings = sum(len(c) for c in self.c.values())
@@ -169,8 +291,10 @@ class Model:
 enc = core.enc
 if a.arm == "A":  # v2 alone (5-gram + 4 class models)
     chosen, util = [], {}
-elif a.arm == "G":
+elif a.arm in ("G", "GS", "GB"):
     chosen, util = [], {}
+elif a.arm == "J":
+    chosen, util = [("j", p) for p in [(2, 3), (2, 4), (3, 4), (2, 5), (3, 6)]], {}
 elif a.arm in ("R", "V"):
     chosen = [("cw" if x.startswith("cw") else x[0], int("".join(ch for ch in x if ch.isdigit()))) for x in a.keys.split(",")]
     RANDOM = a.arm == "R"
@@ -196,15 +320,49 @@ else:
         cost = a.lam * m.bindings * 0.5 * math.log2(Ntok) / Ntok
         util[tm] = (gain, cost, gain - cost)
     chosen = [tm for tm in templates if util[tm][2] > 0]
+t_learn = time.time()
 models = [Model(tm, enc) for tm in chosen]
 if a.arm == "G":
     models = [Successive(d, classes[0]) for d in range(2, 9)]
+elif a.arm == "GS":
+    _, C0, E0 = core.learn(np.arange(V), 256, 1)
+    mem = core.memberships(E0, classes[0].hard, classes[0].C, 4)
+    models = [SuccessiveSoft(d, classes[0], mem) for d in range(2, 9)]
+elif a.arm == "GB":
+    ent = entity_classes(classes[0])
+    models = [SuccessiveBind(classes[0], ent)]
+learn_secs = time.time() - t_learn
 t1 = time.time()
+
+# Admission gate: every added component's next-token distribution must sum
+# to 1 over the whole vocabulary and END, on prefixes that include unknown
+# words and every length from empty to long. A run that fails is refused.
+def gate(models, n_prefixes=12):
+    rng = __import__("random").Random(5)
+    unseen = [w for w in core.vocab if not core.seen[wid[w]]]
+    prefixes = [[]] + [dev[i][: rng.randrange(1, len(dev[i]) + 1)] for i in rng.sample(range(3000, 7000), n_prefixes)]
+    if unseen:
+        prefixes.append(dev[0][:3] + [unseen[0]])
+    worst = 0.0
+    for m in models:
+        for pre in prefixes:
+            tot = sum(m.probs(pre + [w])[len(pre)] for w in core.vocab) + m.probs(pre)[len(pre)]
+            worst = max(worst, abs(tot - 1))
+    if worst > 1e-6:
+        raise SystemExit(f"admission gate: a component's next-token probabilities are off by {worst:.2e}; refused")
+    return worst, len(prefixes)
+
+
+gate_worst, gate_n = gate(models[:3] if models else []) if os.environ.get("NO_GATE") != "1" else (float("nan"), 0)
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
-cls = [[m.probs(dev[i]) for m in classes] for i in range(7000)]
 fit = range(0, 1000)
-evalr = range(1000, 3000) if a.split == "select" else range(3000, 7000)
-comps = {i: [kn[i]] + cls[i] + [m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
+evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000)}[a.split]
+cls = {i: [m.probs(dev[i]) for m in classes] for i in list(fit) + list(evalr)}
+t_inf = time.time()
+extra = {i: [m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
+inf_tokens = sum(len(dev[i]) + 1 for i in list(fit) + list(evalr))
+ms_per_token = 1000 * (time.time() - t_inf) / inf_tokens
+comps = {i: [kn[i]] + cls[i] + extra[i] for i in list(fit) + list(evalr)}
 J = len(comps[0])
 bucket = (lambda t: min(t, 6)) if a.buckets else (lambda t: 0)
 NB = 7
@@ -227,8 +385,8 @@ for i in evalr:
             e[0] += b
             e[1] += 1
 res = " ".join(f"{k} {B[k][0] / B[k][1]:.4f}" for k in ("all", "0-1", "2-4", "5+"))
-kept = ", ".join(f"{k}{d}" for k, d in chosen) or ("successive g2-g8" if a.arm == "G" else "none")
-print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} | {time.time() - t0:.0f}s")
+kept = ", ".join(f"{k}{d}" for k, d in chosen) or {"G": "successive g2-g8 (hard)", "GS": "successive g2-g8 (soft, top 4)", "GB": "successive, entity slot"}.get(a.arm, "none")
+print(f"n={a.n} arm={a.arm}{' buckets' if a.buckets else ''} split={a.split} | {res} | keys: {kept} | stored bindings {sum(m.bindings for m in models)} ({sum(m.bindings for m in models) * 12 / 1e6:.0f} MB at 12 bytes each) | learn {learn_secs:.0f}s | {ms_per_token:.3f} ms/token for the added components | gate: worst |sum - 1| {gate_worst:.1e} over {gate_n} prefixes | {time.time() - t0:.0f}s")
 if util:
     for tm in templates:
         g, c, u = util[tm]

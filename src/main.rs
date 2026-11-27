@@ -1461,7 +1461,7 @@ fn baselines(dir: &str) {
 }
 
 /// Per-token probabilities of the Kneser–Ney word model (order `order`,
-/// trained on the first n sentences) for the first 7,000 development
+/// trained on the first n sentences) for the first 11,000 development
 /// sentences, END included: one line per sentence, space-separated. For the
 /// v2 prototype's interpolation.
 fn knprobs(dir: &str, n: usize, order: usize, out: &str) {
@@ -1469,7 +1469,7 @@ fn knprobs(dir: &str, n: usize, order: usize, out: &str) {
     let dev = read(&format!("{dir}/dev.txt"));
     let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
     let m = KneserNey::train(&train[..n.min(train.len())], &vocab, order, 0.75);
-    let lines = dev.iter().take(7000).map(|s| {
+    let lines = dev.iter().take(11000).map(|s| {
         (0..=s.len())
             .map(|i| format!("{:e}", m.p(&s[..i], s.get(i).map(|x| x.as_str()).unwrap_or(END))))
             .collect::<Vec<_>>()

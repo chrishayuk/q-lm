@@ -15,7 +15,7 @@ widths = [1, 2]
 def setup(dir, n, width="1+2"):
     global train, dev, vocab, wid, V, END, counts, seen, enc, widths
     train = [l.split() for l in open(f"{dir}/train.txt")][:n]
-    dev = [l.split() for l in open(f"{dir}/dev.txt")][:7000]
+    dev = [l.split() for l in open(f"{dir}/dev.txt")][:11000]
     vocab = open(f"{dir}/vocab.txt").read().split()
     wid = {w: i for i, w in enumerate(vocab)}
     V = len(vocab)
@@ -133,3 +133,24 @@ class ClassModel:
         return pc.sum()
 
 
+
+
+def memberships(E, hard, C, m):
+    """Soft memberships of every seen word in its top m classes: weights
+    proportional to exp(cos / 0.1) to the classes' frequency-weighted
+    centroids. Returns a dict word -> [(class, weight)]."""
+    cent = np.zeros((C, E.shape[1]))
+    for w in range(V):
+        if seen[w]:
+            cent[hard[w]] += E[w] * counts[w]
+    cent /= np.linalg.norm(cent, axis=1, keepdims=True) + 1e-12
+    sim = E @ cent.T
+    out = {}
+    for w in range(V):
+        if not seen[w]:
+            continue
+        top = np.argsort(-sim[w])[:m]
+        e = np.exp((sim[w, top] - sim[w, top].max()) / 0.1)
+        e = e / e.sum()
+        out[w] = [(int(c), float(x)) for c, x in zip(top, e) if x > 1e-3]
+    return out

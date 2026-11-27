@@ -173,3 +173,64 @@ The plan's richer intermediates are not built yet:
 - weighted distributions over classes;
 - kept bindings: actor, object;
 - a second lookup chosen by the first's result.
+
+## Addendum: arms F and G (joint keys, weighted intermediates, kept bindings)
+
+As specified in the plan before running. 100,000 sentences, weights by
+position. Table: [tables/key-001-fg-100k.txt](tables/key-001-fg-100k.txt).
+
+**A bug, caught and fixed before these numbers.** The first G-soft run at
+10,000 sentences gave 4.793 against v2's 4.974. Its next-token
+probabilities summed to as much as 1.17.
+- The cause: absolute discounting with fractional counts credited the
+  backoff with D per word, while removing only min(count, D).
+- That result is discarded. Every component now passes an **admission
+  gate** before any run: its next-token probabilities, summed over the
+  whole vocabulary and END, on 14 prefixes (empty to long, with an unknown
+  word), must be within 1e-6 of 1. Worst values: G-soft 4.7e-9, the others
+  at most 2.5e-13.
+
+**Comparison split:**
+
+| arm | stored bindings | all | 2–4 | 5+ | ms per token, added components |
+|---|---:|---:|---:|---:|---:|
+| P: independent pairs | 7.24 M | **4.0236** | **3.8936** | **3.7936** | 0.025 |
+| J: joint keys, kept if seen 3 or more times | 1.01 M | 4.0395 | 3.9054 | 3.8152 | 0.005 |
+| G-hard: successive, one class | 1.40 M | 4.0386 | 3.8948 | 3.8177 | 0.013 |
+| G-soft: successive, weighted (top 4 classes) | 4.80 M | 4.0389 | 3.8947 | 3.8180 | 0.027 |
+| G-bind: successive, entity-like slot | 0.04 M | 4.0475 | 3.9047 | 3.8287 | 0.002 |
+| (v2 alone) | 0 | 4.0497 | 3.9074 | 3.8312 | |
+
+"Bindings × 12 bytes" is an estimate, not serialised model bytes; that is
+still to be measured.
+
+**Against the plan:**
+- **Successive computation beats storage: fails.**
+  - Neither G-soft nor G-bind beats P at positions 5+.
+  - Neither is within 0.005 of P overall at half its storage.
+  - Weighted intermediates add nothing over a hard class (4.0389 against
+    4.0386), at 3.4 times the storage.
+  - The entity-like slot stores 42 thousand bindings and gains 0.002.
+- **Joint keys help: fails.** J is behind P at positions 5+ (3.8152 against
+  3.7936), though with a seventh of the storage.
+
+**Confirmation (development 7,001 to 11,000, used once).** These sentences
+are harder: about one word longer, and every model is worse on them.
+
+| model | all |
+|---|---:|
+| 5-gram | 4.7981 |
+| v2 alone | 4.6502 |
+| P | **4.6158** |
+| J | 4.6391 |
+| Llama, full context | 4.2767 |
+
+P's gain over v2 replicates: 0.034 here, 0.026 on the comparison split.
+So does J's ordering below P.
+
+**What it says.** The successive arms built so far are factorised
+predictions: a category, then a word within it. They do not perform a
+computation whose result changes what is looked up next. That is the
+missing mechanism, and the next design (a working state that is
+addressed, read, updated and readdressed) is a different kind of model,
+not another arm of this one.
