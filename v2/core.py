@@ -15,7 +15,7 @@ widths = [1, 2]
 def setup(dir, n, width="1+2"):
     global train, dev, vocab, wid, V, END, counts, seen, enc, widths
     train = [l.split() for l in open(f"{dir}/train.txt")][:n]
-    dev = [l.split() for l in open(f"{dir}/dev.txt")][:11000]
+    dev = [l.split() for l in open(f"{dir}/dev.txt")]
     vocab = open(f"{dir}/vocab.txt").read().split()
     wid = {w: i for i, w in enumerate(vocab)}
     V = len(vocab)

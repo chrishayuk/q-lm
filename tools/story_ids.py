@@ -4,11 +4,13 @@ data-ts was built from TinyStories stories split at . ! ?, lowercased, with
 punctuation as tokens, keeping 2 to 40 tokens; story boundaries were not
 kept. Each data sentence is aligned to the raw stories by its character
 stream without whitespace, in order, and given the index of the story it
-starts in. Writes FILE.story (one story index per line) next to each file.
+starts in. Writes FILE.story (one story index per line) next to each file; a sentence
+that cannot be aligned is marked -1, not guessed. "<unk>" (an
+out-of-vocabulary word) matches 1 to 40 characters.
 
     .venv-gpt2/bin/python -I tools/story_ids.py PARQUET_DIR data-ts train.txt:train dev.txt:validation
 """
-import glob, sys
+import glob, re, sys
 import pyarrow.parquet as pq
 
 pdir, ddir = sys.argv[1], sys.argv[2]
@@ -35,17 +37,25 @@ for spec in sys.argv[3:]:
         pos += len(c)
     text = "".join(stream)
     import bisect
-    ids, ptr, misses, skipped = [], 0, 0, 0
+    ids, ptr, misses, skipped, wild = [], 0, 0, 0, 0
     for s in sents:
         key = "".join(s)
-        j = text.find(key, ptr, ptr + 20_000)
-        if j < 0:
+        j, end = text.find(key, ptr, ptr + 20_000), None
+        if j >= 0:
+            end = j + len(key)
+        elif "<unk>" in s:  # an out-of-vocabulary word: a wildcard of 1 to 40 characters
+            pat = re.compile("".join(".{1,40}?" if w == "<unk>" else re.escape(w) for w in s), re.S)
+            mt = pat.search(text, ptr, ptr + 20_000)
+            if mt:
+                j, end = mt.start(), mt.end()
+                wild += 1
+        if j < 0 or end is None:
             misses += 1
-            ids.append(ids[-1] if ids else 0)
+            ids.append(-1)  # unaligned: marked, not guessed
             continue
         skipped += j - ptr
         ids.append(bisect.bisect_right(starts, j) - 1)
-        ptr = j + len(key)
+        ptr = end
     open(f"{ddir}/{fname}.story", "w").write("\n".join(map(str, ids)) + "\n")
-    print(f"{fname}: {len(sents)} sentences, {misses} not found, {len(set(ids))} stories, "
+    print(f"{fname}: {len(sents)} sentences, {wild} aligned with <unk> as a wildcard, {misses} not found (marked -1), {len(set(ids) - {-1})} stories, "
           f"{skipped} characters skipped between sentences (filtered sentences, whitespace-free)")

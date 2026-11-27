@@ -44,11 +44,11 @@ ap = argparse.ArgumentParser()
 ap.add_argument("dir")
 ap.add_argument("n", type=int)
 ap.add_argument("--arm", default="E")
-ap.add_argument("--split", default="select", choices=["select", "confirm", "confirm2"])
+ap.add_argument("--split", default="select", choices=["select", "confirm", "confirm2", "confirm3"])
 ap.add_argument("--lam", type=float, default=1.0)
 ap.add_argument("--buckets", action="store_true", help="mixture weights per position bucket")
 ap.add_argument("--keys", default="", help="for arm R or V: comma-separated templates, e.g. w2,w3,c2")
-ap.add_argument("--story", default="", help="QLM-TINYSTORIES-V3-001: comma-separated story-local components: cache, bicache")
+ap.add_argument("--story", default="", help="QLM-TINYSTORIES-V3-001: comma-separated story-local components: cache, bicache, tricache, rcache95, rcache99")
 a = ap.parse_args()
 t0 = time.time()
 core.setup(a.dir, a.n)
@@ -299,8 +299,8 @@ class StoryCache:
     story = True
     BETA = 1.0
 
-    def __init__(self, order, base):
-        self.order, self.base, self.bindings = order, base, 0
+    def __init__(self, order, base, decay=1.0):
+        self.order, self.base, self.bindings, self.decay = order, base, 0, decay
 
     def context(self, i):
         sid = STORY[i]
@@ -316,12 +316,21 @@ class StoryCache:
         out = []
         for t in range(len(seq)):
             prev = ctx + seq[:t]
-            uni = collections.Counter(prev)
-            n = len(prev)
-            p1 = (uni[seq[t]] + self.BETA * self.base.p_uni(seq[t])) / (n + self.BETA)
-            if self.order == 2:
-                v = prev[-1] if prev else START
-                nxt = collections.Counter(prev[k + 1] for k in range(len(prev) - 1) if prev[k] == v)
+            if self.decay < 1.0:  # recency-weighted: an occurrence k tokens back counts decay^k
+                L = len(prev)
+                wt = collections.defaultdict(float)
+                for k, x in enumerate(prev):
+                    wt[x] += self.decay ** (L - 1 - k)
+                n = sum(wt.values())
+                p1 = (wt[seq[t]] + self.BETA * self.base.p_uni(seq[t])) / (n + self.BETA)
+            else:
+                uni = collections.Counter(prev)
+                p1 = (uni[seq[t]] + self.BETA * self.base.p_uni(seq[t])) / (len(prev) + self.BETA)
+            for o in range(2, self.order + 1):  # the prefix's own n-grams after the last o-1 words, backing off
+                hist = tuple(prev[-(o - 1):]) if len(prev) >= o - 1 else None
+                if hist is None:
+                    break
+                nxt = collections.Counter(prev[k + o - 1] for k in range(len(prev) - o + 1) if tuple(prev[k:k + o - 1]) == hist)
                 m = sum(nxt.values())
                 p1 = (nxt[seq[t]] + self.BETA * p1) / (m + self.BETA)
             out.append(max(p1, 1e-12))
@@ -375,7 +384,8 @@ elif a.arm == "GB":
     models = [SuccessiveBind(classes[0], ent)]
 if a.story:
     _base = Model(None, enc)
-    models += [StoryCache({"cache": 1, "bicache": 2}[x], _base) for x in a.story.split(",")]
+    kinds = {"cache": (1, 1.0), "bicache": (2, 1.0), "tricache": (3, 1.0), "rcache95": (1, 0.95), "rcache99": (1, 0.99)}
+    models += [StoryCache(kinds[x][0], _base, kinds[x][1]) for x in a.story.split(",")]
 learn_secs = time.time() - t_learn
 t1 = time.time()
 
@@ -411,7 +421,8 @@ def gate(models, n_prefixes=12):
 gate_worst, gate_n = gate(list(models) + list(classes)) if os.environ.get("NO_GATE") != "1" else (float("nan"), 0)
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
 fit = range(0, 1000)
-evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000)}[a.split]
+evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000),
+         "confirm3": range(11000, len(dev))}[a.split]  # confirm3: data-ts-c3 only (validation stories 1000-1999)
 cls = {i: [m.probs(dev[i]) for m in classes] for i in list(fit) + list(evalr)}
 t_inf = time.time()
 extra = {i: [m.probs_ctx(dev[i], i) if getattr(m, "story", False) else m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}

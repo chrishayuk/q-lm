@@ -92,3 +92,35 @@ weights are fitted by EM on the fit split.
 
 Mixture weights come from the fit split; the select split is for
 choosing among arms; confirm2 is used once.
+
+## Revision 1 (data hygiene and stronger retrieval, before any C to E code)
+
+**Exact story boundaries.**
+- The 353 development sentences that did not align all contain `<unk>`;
+  aligned with `<unk>` as a wildcard, every sentence aligns, none
+  guessed.
+- `tools/ts_prep.py` then reproduces data-ts's preprocessing exactly:
+  lowercase; sentences end at . ! ? followed by whitespace; tokens are
+  letter runs, digit runs and single other characters; 2 to 40 tokens;
+  out-of-vocabulary words as `<unk>`.
+  - It reproduces all 13,959 development and all 346,098 training
+    sentences, line for line.
+  - So the story ids are exact; `data-ts/*.story` are its output.
+- The first B result (5.770 at 1,000) used the earlier assignment, in
+  which about 40 development sentences had an inherited story. Rerun.
+
+**An untouched, story-disjoint confirmation set: confirm3.**
+- TinyStories validation stories 1,000 to 1,999, prepared the same way:
+  14,227 sentences.
+- No experiment has read them.
+- They live in `data-ts-c3/`: its dev.txt is data-ts's first 11,000
+  development sentences (so the fit split, 0 to 999, is unchanged),
+  followed by confirm3 (indices 11,000 onwards). `--split confirm3`.
+- It is used once, for the final arms.
+- confirm2 (development 7,000 to 10,999) has been read by earlier v2
+  experiments, so it is no longer a confirmation set.
+
+**Stronger retrieval controls:** B3 = B + B2 + a trigram cache (the
+prefix's own continuations of the last two words) + recency-weighted
+caches (decay 0.95 and 0.99), all as components mixed by EM. Computation
+must beat B3.
