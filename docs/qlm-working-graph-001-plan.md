@@ -185,3 +185,23 @@ silently raised.
 - **The control, arm C-frozen:** C to F's best arm with writes onto earlier
   nodes disabled (writes onto the current node only). It measures what
   revision adds.
+
+**Final clarifications (before code).**
+- **Indexed addressing.** Choosing the 64 best nodes by scanning the whole
+  prefix is still quadratic in total. The graph keeps an inverted index:
+  key feature → the nodes holding it, with weights. An operation looks up
+  only the nodes that share a key feature with its query, so the work per
+  position is proportional to the matches, not to the prefix.
+- **Uncertainty is kept, not sharpened.**
+  - Normalising a feature type's weights on a node never raises them above
+    the evidence for them: what pruning removes is recorded on the node as
+    discarded mass, and the weights are normalised over kept plus
+    discarded.
+  - A feature's absence (no evidence) and a feature with weight driven
+    down by a write (evidence against) are distinct states.
+- **Revision can suppress.** A write carries a signed weight. A negative
+  write lowers a feature's weight on a node, multiplicatively, down to its
+  removal. Operations may learn negative writes when those lower held-out
+  bits. Example: evidence that weakens an earlier interpretation.
+- **confirm4 compares** the winning arm with the strongest controls
+  (P, B, G and C-frozen), not only with A.
