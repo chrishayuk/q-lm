@@ -28,15 +28,18 @@ MAX_FEAT = 16      # written features per node per type (budget)
 PRUNE = 0.01
 ALPHA = 5.0        # lift smoothing
 ORIGINAL = ("w", "c", "ps", "ss")
+MAX_NODES = 4096   # a benchmarking constraint only, not architecture (limit computation, not context):
+                   # older nodes are kept and indexed but not addressed. It never binds on TinyStories.
 
 
 class Graph:
     """The working graph of one story prefix, built token by token."""
 
-    def __init__(self, ops, lifts, cls, frozen=False):
-        self.ops, self.lifts, self.cls, self.frozen = ops, lifts, cls, frozen
+    def __init__(self, ops, lifts, cls, frozen=False, predict="final"):
+        self.ops, self.lifts, self.cls, self.frozen, self.predict = ops, lifts, cls, frozen, predict
+        self.all_addr = {}
         self.nodes = []          # each: {"f": {type: {value: weight}}, "succ": token or None, "disc": {type: mass}}
-        self.index = collections.defaultdict(lambda: collections.defaultdict(list))  # type -> value -> [node]
+        self.index = collections.defaultdict(lambda: collections.defaultdict(set))  # type -> value -> {node}
         self.sent, self.pos = 0, 0
         self.lookups = 0
 
@@ -48,25 +51,30 @@ class Graph:
         self.nodes.append({"f": f, "succ": None, "disc": {}})
         for t, vals in f.items():
             for v in vals:
-                self.index[t][v].append(n)
+                self.index[t][v].add(n)
         if tok == END:
             self.sent, self.pos = self.sent + 1, 0
         else:
             self.pos += 1
 
     def write(self, n, typ, vals):
-        """Normalise over kept + discarded mass, prune, cap; record what is discarded."""
+        """Add evidence (vals carry absolute strength, not unit mass). Weights are scaled down only
+        if their total with the discarded mass exceeds 1, never up, so weak evidence stays weak.
+        Pruned features leave the index and their mass is recorded as discarded."""
         node = self.nodes[n]
         cur = node["f"].setdefault(typ, {})
         for v, w in vals.items():
             if v not in cur:
-                self.index[typ][v].append(n)
+                self.index[typ][v].add(n)
             cur[v] = cur.get(v, 0.0) + w
         disc = node["disc"].get(typ, 0.0)
-        z = sum(cur.values()) + disc
-        kept = dict(sorted(((v, w / z) for v, w in cur.items()), key=lambda x: -x[1])[:MAX_FEAT])
-        kept = {v: w for v, w in kept.items() if w >= PRUNE}
-        node["disc"][typ] = 1.0 - sum(kept.values())  # discarded mass, kept in later normalisations
+        z = max(1.0, sum(cur.values()) + disc)
+        scaled = sorted(((v, w / z) for v, w in cur.items()), key=lambda x: -x[1])
+        kept = {v: w for v, w in scaled[:MAX_FEAT] if w >= PRUNE}
+        dropped = [v for v, _ in scaled if v not in kept]
+        for v in dropped:
+            self.index[typ][v].discard(n)
+        node["disc"][typ] = disc / z + sum(w for v, w in scaled if v not in kept)
         node["f"][typ] = kept
 
     def address(self, p, q, k, lift):
@@ -79,7 +87,7 @@ class Graph:
                 if l is None or l <= 1.0:
                     continue
                 for n in nodes:
-                    if n < qn:
+                    if qn - MAX_NODES <= n < qn:
                         self.lookups += 1
                         kw = self.nodes[n]["f"].get(k, {}).get(kv, 0.0)
                         if kw:
@@ -88,6 +96,9 @@ class Graph:
 
     def run(self):
         """Apply every pass at the current position; return the last pass's addressed nodes."""
+        if not self.nodes:
+            return {}
+        self.all_addr = {}
         qn = len(self.nodes) - 1
         addr = {}
         for p, (q, k) in enumerate(self.ops, 1):
@@ -95,20 +106,25 @@ class Graph:
             tot = sum(addr.values())
             if tot <= 0:
                 continue
+            strength = tot / (tot + 1.0)  # evidence strength of this pass's result, in (0, 1)
             wvals = collections.defaultdict(float)
             for n, s in addr.items():
                 for v, w in self.nodes[n]["f"]["w"].items():
-                    wvals[v] += s / tot * w
+                    wvals[v] += strength * s / tot * w
             self.write(qn, f"p{p}", wvals)
             if not self.frozen:
                 qw = self.nodes[qn]["f"]["w"]
                 for n, s in addr.items():
-                    self.write(n, f"p{p}b", {v: s / tot * w for v, w in qw.items()})
+                    self.write(n, f"p{p}b", {v: strength * s / tot * w for v, w in qw.items()})
+            for n, s_ in addr.items():
+                self.all_addr[n] = self.all_addr.get(n, 0.0) + s_
         return addr
 
     def dist(self, p_uni):
         """Next-token distribution (sparse explicit part + weight on the unigram) from the final pass."""
         addr = self.run()
+        if self.predict == "all":  # the accumulated state: every pass's addressed nodes
+            addr = self.all_addr
         e, tot = collections.defaultdict(float), 0.0
         for n, s in addr.items():
             y = self.nodes[n]["succ"]
@@ -157,8 +173,8 @@ def count_lift(stories, ops, lifts, q, k, cls, END):
 def heldout_bits(stories, ops, lifts, cls, END, p_uni, frozen=False):
     """Bits on held-out stories of a 2-component mixture: a story bigram cache and the graph's
     prediction, the weight fitted by EM on these stories. Returns (bits with, bits cache alone)."""
-    rows = []
-    for story in stories:
+    rows, story_of_row = [], []
+    for si, story in enumerate(stories):
         g = Graph(ops, lifts, cls, frozen)
         toks = [t for s in story for t in s + [END]]
         prev = []
@@ -172,14 +188,18 @@ def heldout_bits(stories, ops, lifts, cls, END, p_uni, frozen=False):
                 d = g.dist(p_uni) if ops else {"__rest__": 1.0}
                 pg = d.get(tok, d["__rest__"] * p_uni(tok))
                 rows.append((pb, pg))
+                story_of_row.append(si)
             g.add(tok, END)
             prev.append(tok)
+    half = len(stories) // 2  # whole stories: the weight is fitted on the first half of the stories, scored on the rest
+    fitr = [r for r, si in zip(rows, story_of_row) if si < half]
+    evr = [r for r, si in zip(rows, story_of_row) if si >= half]
     lam = 0.5
     for _ in range(30):
-        r = [lam * pg / (lam * pg + (1 - lam) * pb) for pb, pg in rows]
+        r = [lam * pg / (lam * pg + (1 - lam) * pb) for pb, pg in fitr]
         lam = sum(r) / len(r)
-    with_ = -sum(math.log2(lam * pg + (1 - lam) * pb) for pb, pg in rows) / len(rows)
-    alone = -sum(math.log2(pb) for pb, _ in rows) / len(rows)
+    with_ = -sum(math.log2(lam * pg + (1 - lam) * pb) for pb, pg in evr) / len(evr)
+    alone = -sum(math.log2(pb) for pb, _ in evr) / len(evr)
     return with_, alone, lam
 
 

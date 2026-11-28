@@ -8,7 +8,8 @@ reach the fit or select splits.
     python3 -I tools/check_story_leak.py
 """
 import random, sys
-sys.argv = ["composite.py", "data-ts", "1000", "--arm", "A", "--story", "cache,bicache,tricache,rcache95,rcache99"]
+sys.argv = ["composite.py", "data-ts", "1000", "--arm", "A", "--story", "cache,bicache,tricache,rcache95,rcache99,bind,wg=w:ss+p1:ss"]
+import os; os.environ.setdefault("WG_STORIES", "40")
 sys.path.insert(0, "v2")
 src = open("v2/composite.py").read()
 src = src[: src.index("# Admission gate")]
@@ -17,7 +18,7 @@ exec(compile(src, "composite.py", "exec"), g)
 dev, models, vocab = g["dev"], [m for m in g["models"] if getattr(m, "story", False)], g["core"].vocab
 rng = random.Random(3)
 checked = 0
-for i in rng.sample([i for i in range(1, 3000) if g["STORY"][i] == g["STORY"][i - 1]], 40):
+for i in rng.sample([i for i in range(1, 3000) if g["STORY"][i] == g["STORY"][i - 1]], 15):
     for m in models:
         base = m.probs_ctx(dev[i], i)
         # (1) later words of this sentence

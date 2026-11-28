@@ -477,6 +477,39 @@ class Bind(StoryDist):
         return d
 
 
+class WGComp(StoryDist):
+    """QLM-WORKING-GRAPH-001 stage 1 (v4/wgraph.py): the working graph run
+    incrementally over the story prefix, every pass at every position."""
+
+    def __init__(self, base, ops, lifts, cls, frozen, predict="final"):
+        self.base, self.ops, self.lifts, self.cls, self.frozen, self.predict = base, ops, lifts, cls, frozen, predict
+        self.bindings = sum(len(l) for l in lifts)
+        self.lookups = 0
+
+    def _graph(self, prev):
+        gph = wgraph.Graph(self.ops, self.lifts, self.cls, self.frozen, self.predict)
+        for t, tok in enumerate(prev):
+            if t >= 1:
+                gph.run()
+            gph.add(tok, END)
+        return gph
+
+    def dist(self, prev):
+        return self._graph(prev).dist(self.base.p_uni)
+
+    def probs_ctx(self, s, i):
+        ctx = self.context(i)
+        seq = [wid[x] for x in s] + [END]
+        gph = self._graph(ctx)
+        out = []
+        for t in range(len(seq)):
+            d = gph.dist(self.base.p_uni) if gph.nodes else {"__rest__": 1.0}
+            out.append(max(d.get(seq[t], d["__rest__"] * self.base.p_uni(seq[t])), 1e-12))
+            gph.add(seq[t], END)
+        self.lookups += gph.lookups
+        return out
+
+
 STORY = [int(x) for x in open(f"{a.dir}/dev.txt.story")] if a.story else []
 STORY_TRAIN = [int(x) for x in open(f"{a.dir}/train.txt.story")][: a.n] if a.story else []
 enc = core.enc
@@ -534,6 +567,21 @@ if a.story:
             m = SpanCache(_base, {g_ for g_, c in grams.items() if c >= th})
             m.bindings = len(m.spans)
             models.append(m)
+        elif x.startswith("wg=") or x.startswith("wgfrozen=") or x.startswith("wgall="):
+            # wg=q:k+q:k... the passes (chosen by v4/run_select.py on training stories); lifts counted here
+            sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "v4"))
+            global wgraph
+            import wgraph
+            frozen = x.startswith("wgfrozen=")
+            ops = [tuple(o.split(":")) for o in x.split("=", 1)[1].split("+")]
+            cut = int(0.9 * len(enc))
+            sample = wgraph.stories_of(enc[:cut], STORY_TRAIN[:cut])[: int(os.environ.get("WG_STORIES", 300))]
+            hard0 = classes[0].hard
+            clsf = lambda w: int(hard0[w]) if w < len(hard0) else -1
+            lifts = []
+            for j, (q, k) in enumerate(ops):
+                lifts.append(wgraph.count_lift(sample, ops[:j], lifts[:j], q, k, clsf, END))
+            models.append(WGComp(_base, ops, lifts, clsf, frozen, "all" if x.startswith("wgall=") else "final"))
         elif x in ("bind", "bind0", "bindshuf", "bindrand"):
             bm = Bind(_base, x != "bind0", enc, STORY_TRAIN)
             if x == "bindshuf":  # matched capacity: D's table, its lift values reassigned at random among its keys

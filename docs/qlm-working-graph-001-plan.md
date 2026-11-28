@@ -205,3 +205,17 @@ silently raised.
   bits. Example: evidence that weakens an earlier interpretation.
 - **confirm4 compares** the winning arm with the strongest controls
   (P, B, G and C-frozen), not only with A.
+
+**Design principle: limit computation, not context.**
+- **Stored context has no architectural limit.** Every node is kept and
+  indexed.
+- **Bounded work per prediction is the budget:** nodes addressed per
+  operation, written features per node, passes.
+- **The 4,096-node addressing window** is a benchmarking constraint only,
+  not part of the architecture. It never binds on TinyStories (stories
+  are about 200 tokens).
+- **Whether distant context is reachable** is a property of the learned
+  addressing and its index, to be measured when contexts are long.
+- **Later, not in this experiment:** context consolidation (older nodes
+  summarised into higher-level features without deleting them) and storage
+  beyond memory.
