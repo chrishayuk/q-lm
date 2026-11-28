@@ -170,3 +170,18 @@ second stage after address, read and write work: a conjunction.
 
 These are limits, not tuned values. Exceeding one is reported, never
 silently raised.
+
+**Clarification: two directions of writing, and revision.**
+- **Across passes, at one position:** each pass reads the graph as the
+  earlier passes left it and adds its writes. A written feature can be the
+  query or key of a later pass: a result becomes an address.
+- **Across positions, as the story grows:** new nodes are added.
+- **Earlier nodes may be revised.** At position t an operation may write
+  onto any earlier node, using only tokens before t. The prediction at t
+  reads the graph as it stands at t.
+- The causal rule is only that nothing is derived from tokens at or after
+  the position being predicted, unlike a transformer's cache, whose earlier
+  states are fixed.
+- **The control, arm C-frozen:** C to F's best arm with writes onto earlier
+  nodes disabled (writes onto the current node only). It measures what
+  revision adds.
