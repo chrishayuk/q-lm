@@ -99,3 +99,74 @@ limit.
   versioned data experiment. The present benchmark stays as it is.
 - **Story-position alone** (arm P) is in this experiment only as a
   baseline.
+
+## Revision 1 (after review, before any code)
+
+**A fresh confirmation set, confirm4.**
+- confirm3 is being opened for v3, so v4 gets its own: TinyStories
+  validation stories 2,000 to 2,999, prepared by `tools/ts_prep.py`
+  (16,614 sentences).
+- `data-ts-c4/`, `--split confirm4`, used once for the final v4 arms. Not
+  read until then.
+
+**Credit assignment that can find "useless now, useful later".**
+- **Greedy (as above) is the baseline.**
+- **Beam (new arm C-beam):** the 4 best partial compositions are kept at
+  each pass, and pass p's candidates are scored by the best gain any
+  continuation achieves within 2 further passes (lookahead 2). A pass that
+  gains nothing alone but enables a later gain can be kept.
+- Both use only held-out training stories.
+
+**Arm B, exactly.** For every operation C to F selects, B runs it as its
+own component with the q and k feature types replaced by their nearest
+original type:
+- a written feature's original type is the type of the features it was
+  read from (a written feature derived from a word feature becomes a word
+  feature);
+- each B component reads the original features only, and the components
+  are mixed independently.
+
+**Feature propagation, bounded.**
+- **Weights:** each node's features carry weights that sum to 1 per
+  feature type, normalised after every write.
+- **Deduplication:** a feature written twice is one feature, with summed
+  weight.
+- **Pruning:** features below 0.01 are dropped after each pass.
+- **Maximums:** 16 written features per node per type; 64 addressed nodes
+  per operation (the highest-weighted), so cost is linear in the prefix,
+  not quadratic.
+
+**Causal correctness.** The prediction at position t may depend only on
+tokens before t and on writes made while processing them.
+- The working graph is rebuilt position by position, never revised from
+  later tokens.
+- Checked by `tools/check_story_leak.py`'s method: changing later words or
+  sentences must not change any earlier probability.
+
+**Transform, the FFN analogue.** One more operation kind, added in a
+second stage after address, read and write work: a conjunction.
+- A new feature is written where two features co-occur on a node (or on
+  a node and its addressed node), if that conjunction lowers held-out
+  bits.
+- It derives new information instead of moving it.
+- **Consolidation:** two written features whose node sets overlap above
+  Jaccard 0.9 on the held-out stories are merged.
+
+**Generation quality, beyond names and openings.**
+- **Grammaticality proxy:** the mean per-token bits of each generated
+  sentence under the sentence-level Llama baseline. It is independent of
+  Q-LM, and a lower value means more like TinyStories.
+- **Contradictions and overall coherence:** read by a person, blind to
+  the arm. 10 stories per arm, shuffled, from the same seeds, each scored
+  0 to 2 for coherence and with contradictions noted. The procedure is
+  fixed here; the scores are reported with the reader's notes.
+
+**Computational budgets, as architectural limits.**
+- 64 addressed nodes per operation;
+- 16 written features per node per type;
+- at most 8 passes;
+- a working graph of at most 4,096 nodes per story (older nodes are dropped
+  first).
+
+These are limits, not tuned values. Exceeding one is reported, never
+silently raised.

@@ -44,7 +44,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("dir")
 ap.add_argument("n", type=int)
 ap.add_argument("--arm", default="E")
-ap.add_argument("--split", default="select", choices=["select", "confirm", "confirm2", "confirm3"])
+ap.add_argument("--split", default="select", choices=["select", "confirm", "confirm2", "confirm3", "confirm4"])
 ap.add_argument("--lam", type=float, default=1.0)
 ap.add_argument("--buckets", action="store_true", help="mixture weights per position bucket")
 ap.add_argument("--keys", default="", help="for arm R or V: comma-separated templates, e.g. w2,w3,c2")
@@ -585,7 +585,8 @@ gate_worst, gate_n = gate(list(models) + list(classes)) if os.environ.get("NO_GA
 kn = [[float(x) for x in l.split()] for l in open(f"{a.dir}/v2/kn5-{a.n}.txt")]
 fit = range(0, 1000)
 evalr = {"select": range(1000, 3000), "confirm": range(3000, 7000), "confirm2": range(7000, 11000),
-         "confirm3": range(11000, len(dev))}[a.split]  # confirm3: data-ts-c3 only (validation stories 1000-1999)
+         "confirm3": range(11000, len(dev)),  # data-ts-c3 only (validation stories 1000-1999)
+         "confirm4": range(11000, len(dev))}[a.split]  # data-ts-c4 only (validation stories 2000-2999), reserved for v4
 cls = {i: [m.probs(dev[i]) for m in classes] for i in list(fit) + list(evalr)}
 t_inf = time.time()
 extra = {i: [m.probs_ctx(dev[i], i) if getattr(m, "story", False) else m.probs(dev[i]) for m in models] for i in list(fit) + list(evalr)}
