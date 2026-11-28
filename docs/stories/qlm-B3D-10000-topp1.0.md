@@ -1,0 +1,13 @@
+# Q-LM stories: data-ts 10000 --arm V --keys w2,w3,w4,w5,w6,w7,w8,c2,c3,c4,c5,c6,c7,cw2,cw3,cw4,cw5,cw6 --buckets --story cache,bicache,tricache,rcache95,rcache99,bind; seed 1; top-p 1.0; opening 'once upon a time'
+
+## story 1
+
+once upon a time , tim . once upon a time , there was a small boy named charlie . the end . the little duck . charlie noticed surprises inside to a nosy little baby smile on his face charlie is my returned because the puppy was always upon a big stick the time . that time there lived a little girl who liked to the leaves in a ride tim waited tommy remembered fun that he was a spear and looking for something and it ! and learn a new friend that she heard so so happy came back he began to shake that day . once upon a time , there was a dependable elephant benny brought sneakily the person started to smile and bow and bow . his mum looked at tommy and his mum . learn bottle that is you liked to play in the trees . it was big and persistent ' s wonderful , sweetheart ! " to a glass
+
+## story 2
+
+once upon a time there was an old man standing . once searching favorite shirts had so much man standing looked at the end , while quickly she old man , " okay , and wanted she now . but and ducks . when upon her neighbor was very . and that is her favorite a special place old , had other a hug , a dinner . he . and you made me . they learned a warm it . and the one , the side tank much man . at a while pete with her neighbours . once upon a time , they learned their a hug . it was so man , " he couldn â " i ' s ? " . the end . and today was a sad . once upon a time there was her jog . i made a and they all the things together . it was could play . it came up the sunlight and was to work . one day , lily it doesn ™ not food takes knew he had worked was shiny and sparkly , and max area bits
+
+## story 3
+
+once upon a time for a bath . they all said he put strangers . molly really field . then it should share day , it back in the butterflies fin felt like to talk about being very careful smell for great idea that ! " that everyone happy together . the nightmare vanished her cat loved to the tree to careful and nearby the house . , but the amazing back at that her tiny bird inside should vanished seem and thanked the fish " back the bird away . john always mum but the fish is good to slow down and listen to find it back home . the fish listened to eat and untangle <unk> the trumpet train stories looked said he was on a big the puzzle . suddenly , everyone clapped a bath . one day , sam had a great time . he wanted to see mum in lid that tree in visit suitcase there was a young girl named daisy listened carefully everyone cheered and jack and bath his was bird .

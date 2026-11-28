@@ -338,7 +338,147 @@ class StoryCache:
         return out
 
 
+class StoryDist:
+    """Story components defined by a full next-word distribution at a position
+    (dist), used both for scoring and for the admission gate."""
+    story = True
+    BETA = 1.0
+    bindings = 0
+
+    def context(self, i):
+        return StoryCache.context(self, i)
+
+    def probs_ctx(self, s, i):
+        ctx = self.context(i)
+        seq = [wid[x] for x in s] + [END]
+        out = []
+        for t in range(len(seq)):
+            d = self.dist(ctx + seq[:t])
+            out.append(max(d.get(seq[t], self.floor(seq[t], d)), 1e-12))
+        return out
+
+    def floor(self, w, d):
+        return d["__rest__"] * self.base.p_uni(w)
+
+    def gate_sum(self, pre, i):
+        ctx = self.context(i)
+        seq = [wid[x] for x in pre]
+        d = self.dist(ctx + seq)
+        return sum(d.get(w, self.floor(w, d)) for w in list(range(V)) + [END])
+
+    def finish(self, e, rest):
+        """e: explicit mass per word; rest: the weight on the training unigram.
+        Returns full probabilities for the explicit words, and __rest__ for the others."""
+        d = {w: x + rest * self.base.p_uni(w) for w, x in e.items()}
+        d["__rest__"] = rest
+        return d
+
+    def backoff_parts(self, prev):
+        """B3's order-2 cache over the word cache: p(w) = e[w] + rest * p_uni(w)."""
+        uni = collections.Counter(prev)
+        n = len(prev)
+        e1 = {w: c / (n + self.BETA) for w, c in uni.items()}
+        rest1 = self.BETA / (n + self.BETA)
+        v = prev[-1] if prev else START
+        nxt = collections.Counter(prev[k + 1] for k in range(len(prev) - 1) if prev[k] == v)
+        m = sum(nxt.values())
+        e2 = {w: (nxt.get(w, 0) + self.BETA * e1.get(w, 0.0)) / (m + self.BETA) for w in set(e1) | set(nxt)}
+        return e2, self.BETA * rest1 / (m + self.BETA)
+
+    def backoff(self, prev):
+        return self.finish(*self.backoff_parts(prev))
+
+
+class SpanCache(StoryDist):
+    """Arm C: the longest learned span (2 to 4 words, seen often in training)
+    ending the context is the key; what followed it in the story prefix is
+    predicted, backing off to B3's order-2 cache."""
+
+    def __init__(self, base, spans):
+        self.base, self.spans = base, spans
+
+    def dist(self, prev):
+        e2, rest2 = self.backoff_parts(prev)
+        for L in (4, 3, 2):
+            if len(prev) >= L and tuple(prev[-L:]) in self.spans:
+                key = tuple(prev[-L:])
+                nxt = collections.Counter(prev[k + L] for k in range(len(prev) - L) if tuple(prev[k:k + L]) == key)
+                m = sum(nxt.values())
+                if m:
+                    e3 = {w: (nxt.get(w, 0) + self.BETA * e2.get(w, 0.0)) / (m + self.BETA) for w in set(e2) | set(nxt)}
+                    return self.finish(e3, self.BETA * rest2 / (m + self.BETA))
+                break
+        return self.finish(e2, rest2)
+
+
+class Bind(StoryDist):
+    """Arm D (learned) and D0 (uniform): read 1, a distribution over the prefix's
+    other words a given the current word r; read 2, what followed each a in the
+    prefix. D weights a by max(lift(r, a) - 1, 0) x occurrences of a; D0 by
+    occurrences alone (the same reads, no learned binding)."""
+    ALPHA = 5.0
+
+    def __init__(self, base, learned, sents, story_ids):
+        self.base, self.learned = base, learned
+        self.lift = {}
+        if learned:
+            hits, trials = collections.Counter(), collections.Counter()
+            stories = []
+            for sent, sid in zip(sents, story_ids):
+                if stories and stories[-1][0] == sid:
+                    stories[-1][1].extend(sent + [END])
+                else:
+                    stories.append([sid, sent + [END]])
+            for _, toks in stories:
+                foll = collections.defaultdict(set)
+                for t in range(1, len(toks)):
+                    r, y = toks[t - 1], toks[t]
+                    for x, nx in foll.items():
+                        if x != r:
+                            trials[(r, x)] += 1
+                            if y in nx:
+                                hits[(r, x)] += 1
+                    if t >= 2:
+                        foll[toks[t - 2]].add(toks[t - 1])
+            h0 = sum(hits.values()) / max(sum(trials.values()), 1)
+            self.lift = {k: ((hits[k] + self.ALPHA * h0) / (n + self.ALPHA)) / h0 for k, n in trials.items()
+                         if (hits[k] + self.ALPHA * h0) / (n + self.ALPHA) > h0}
+            self.all_pairs = list(trials)  # every pair that co-occurred, for the random-pairs control
+            self.bindings = len(self.lift)
+
+    def dist(self, prev):
+        if len(prev) < 2:
+            return {"__rest__": 1.0}
+        r = prev[-1]
+        foll = collections.defaultdict(collections.Counter)
+        occ = collections.Counter(prev[:-1])
+        for k in range(len(prev) - 1):
+            foll[prev[k]][prev[k + 1]] += 1
+        wts = {}
+        for x in foll:
+            if x == r:
+                continue
+            wts[x] = (self.lift.get((r, x), 1.0) - 1.0) * occ[x] if self.learned else occ[x]
+        wts = {x: v for x, v in wts.items() if v > 0}
+        W = sum(wts.values())
+        if not W:
+            return {"__rest__": 1.0}
+        d = collections.defaultdict(float)
+        rest = 0.0
+        for x, v in wts.items():
+            m = sum(foll[x].values())
+            for y, c in foll[x].items():
+                d[y] += v / W * c / (m + self.BETA)
+            rest += v / W * self.BETA / (m + self.BETA)
+        d = dict(d)
+        for y in d:
+            d[y] += rest * self.base.p_uni(y)
+        d["__rest__"] = rest
+        return d
+
+
 STORY = [int(x) for x in open(f"{a.dir}/dev.txt.story")] if a.story else []
+STORY_TRAIN = [int(x) for x in open(f"{a.dir}/train.txt.story")][: a.n] if a.story else []
 enc = core.enc
 if a.arm == "A":  # v2 alone (5-gram + 4 class models)
     chosen, util = [], {}
@@ -385,7 +525,27 @@ elif a.arm == "GB":
 if a.story:
     _base = Model(None, enc)
     kinds = {"cache": (1, 1.0), "bicache": (2, 1.0), "tricache": (3, 1.0), "rcache95": (1, 0.95), "rcache99": (1, 0.99)}
-    models += [StoryCache(kinds[x][0], _base, kinds[x][1]) for x in a.story.split(",")]
+    for x in a.story.split(","):
+        if x in kinds:
+            models.append(StoryCache(kinds[x][0], _base, kinds[x][1]))
+        elif x == "spans":
+            grams = collections.Counter(tuple(sn[k:k + L]) for sn in enc for L in (2, 3, 4) for k in range(len(sn) - L + 1))
+            th = max(5, a.n // 20000)
+            m = SpanCache(_base, {g_ for g_, c in grams.items() if c >= th})
+            m.bindings = len(m.spans)
+            models.append(m)
+        elif x in ("bind", "bind0", "bindshuf", "bindrand"):
+            bm = Bind(_base, x != "bind0", enc, STORY_TRAIN)
+            if x == "bindshuf":  # matched capacity: D's table, its lift values reassigned at random among its keys
+                import random as _r
+                keys, vals = list(bm.lift), list(bm.lift.values())
+                _r.Random(7).shuffle(vals)
+                bm.lift = dict(zip(keys, vals))
+            if x == "bindrand":  # matched capacity, unlearned selection: as many pairs, drawn from all co-occurring pairs
+                import random as _r
+                vals = list(bm.lift.values())
+                bm.lift = dict(zip(_r.Random(int(os.environ.get("RAND_SEED", 7))).sample(bm.all_pairs, len(vals)), vals))
+            models.append(bm)
 learn_secs = time.time() - t_learn
 t1 = time.time()
 
@@ -404,7 +564,10 @@ def gate(models, n_prefixes=12):
         if getattr(m, "story", False):  # with a real story prefix
             for i in story_is:
                 pre = dev[i][: rng.randrange(0, len(dev[i]) + 1)]
-                tot = sum(m.probs_ctx(pre + [w], i)[len(pre)] for w in core.vocab) + m.probs_ctx(pre, i)[len(pre)]
+                if isinstance(m, StoryDist):
+                    tot = m.gate_sum(pre, i)
+                else:
+                    tot = sum(m.probs_ctx(pre + [w], i)[len(pre)] for w in core.vocab) + m.probs_ctx(pre, i)[len(pre)]
                 worst = max(worst, abs(tot - 1))
             continue
         for pre in prefixes:

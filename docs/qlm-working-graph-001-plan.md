@@ -1,0 +1,101 @@
+# QLM-WORKING-GRAPH-001 plan: a graph-native working state (Q-LM v4 candidate)
+
+Written before any code. It follows QLM-TINYSTORIES-V3-001, whose stories
+read as local fragments: grammatical clauses, the opening repeated, and a
+different character in every sentence. Every component there reads the raw
+words and votes on the next one independently. Nothing builds a
+representation that a later operation can read.
+
+## The hypothesis
+
+Next-token prediction improves, beyond more retrieval of the same kind,
+when operations write intermediate results onto a working graph of the
+current story, and later operations address and read those results.
+
+## The working graph
+
+- **Nodes:** every token occurrence of the story prefix, kept individually
+  (no merging of identities).
+- **Each node holds a sparse set of features:**
+  - **initially:** its word, its class under each of v2's 4 class models,
+    its position in its sentence (bucketed) and its sentence's position in
+    the story (bucketed);
+  - **written by operations:** any feature an operation produces.
+- **No feature is given a meaning.** Whether a feature tracks an entity, a
+  construction, a sense or nothing nameable is left to what survives
+  selection.
+
+## Operations
+
+An operation (q, k) has a query feature type q and a key feature type k.
+At the current position:
+1. **Address:** every prefix node is weighted by lift(q-feature of the
+   current node, k-feature of that node). Lift tables are counted on the
+   training stories, as D's binding was, but over feature types, not words.
+2. **Read:** the addressed nodes' features, weighted.
+3. **Write:** the read features, as new features with weights, onto the
+   current node and onto the addressed nodes. Example: "this node is
+   addressed by the current one".
+
+A pass applies one operation. A later pass can use written features as its
+q or k: this is the "residual stream".
+
+**Prediction:** the continuations of the nodes addressed in the final
+pass, weighted (as D's second read). It is a component in the frozen mixture.
+
+## Credit assignment (learning which operations to compose)
+
+- **Candidates:** every (q, k) over the feature types available at that
+  pass, written features included.
+- **Selection:** greedy, pass by pass.
+  - Pass p keeps the candidate whose addition most lowers bits on held-out
+    training stories (the last 10% of the n training sentences, by story),
+    with the earlier passes fixed.
+  - Counting for the lift tables uses the first 90%.
+  - Selection stops when no candidate gains at least 0.001 bits.
+- **No development data is used to choose operations.** The fit split
+  (development 0 to 999) fits mixture weights only.
+
+This is credit assignment by measured downstream gain, not a gradient. It
+can only find compositions that greedy addition reaches; that is a known
+limit.
+
+## Arms
+
+| arm | what |
+|---|---|
+| A | B3 + D (the current best, frozen) |
+| P | A with mixture weights also bucketed by sentence-in-story (0, 1, 2+): the cheap story-position baseline |
+| B | A + independent retrieval: the operations C to F would select, each run as its own component on the original features only (no written features) |
+| C, D, E, F | A + the working graph with 1, 2, 4 and 8 selected passes |
+| G | matched computation without sharing: as many operations as the best of C to F, each reading only original features, their predictions mixed |
+
+## Measures
+
+- **Bits per token:** select split at 10,000 and 100,000; confirm3 once,
+  for the best arm, A, P and G.
+- **Generation:** 20 stories per arm, the same seeds and opening, unrestricted
+  and top-p 0.9. Counted automatically:
+  - restarts of the opening per story;
+  - "the end" before the last sentence;
+  - character persistence: the fraction of sentences after the first that
+    reuse a name from an earlier sentence;
+  - distinct names per story.
+- **Costs:** CPU time, peak memory, serialised model size and working-graph
+  size per story.
+
+## Criteria
+
+- **The working graph helps:** the best of C to F below A, P, B and G by at
+  least 0.005 bits at 10,000 and 100,000, and below A on confirm3.
+- **Composition helps:** the best multi-pass arm below C by at least 0.003,
+  and below G.
+- **Generation improves:** fewer opening restarts and higher character
+  persistence than A and P, over the 20 stories.
+
+## Separate, not part of this experiment
+
+- **The encoding fix** (mis-decoded quotes, "â € œ", in the corpus): a
+  versioned data experiment. The present benchmark stays as it is.
+- **Story-position alone** (arm P) is in this experiment only as a
+  baseline.

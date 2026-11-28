@@ -124,3 +124,58 @@ choosing among arms; confirm2 is used once.
 prefix's own continuations of the last two words) + recency-weighted
 caches (decay 0.95 and 0.99), all as components mixed by EM. Computation
 must beat B3.
+
+## Revision 2: designs of C and D (before their code)
+
+The tokens and vocabulary stay frozen. No pronoun rules, grammatical
+categories or annotations are supplied.
+
+**C, direct span retrieval (`--story spans`).**
+- Learned spans: from the n training sentences, every 2- to 4-word
+  sequence seen at least max(5, n / 20,000) times. They overlap; no
+  segmentation is chosen.
+- At each position, the longest learned span ending the context is the
+  key. The component predicts what followed that span in the story
+  prefix, backing off to the previous-word cache and the word cache as in
+  B3.
+- It differs from B3's trigram cache in its keys: variable-length learned
+  spans, not a fixed two words.
+
+**D, reference binding and successive retrieval (`--story bind`).**
+- **Learned binding.** On the training stories, for each position t with
+  previous word r and next word y, and each other word a in the story
+  prefix:
+  - count a trial for (r, a);
+  - count a hit if y followed a somewhere in the prefix.
+  - Then lift(r, a) = P(hit | r, a), smoothed towards the overall hit
+    rate, divided by that rate.
+  - So "she" binds to the words whose continuations predict what follows
+    "she": learned from co-occurrence of continuations, not from a
+    pronoun list.
+- **Inference, two reads, the second using the first's result:**
+  1. a distribution over the prefix's words a, given the current word r:
+     weight ∝ max(lift(r, a) − 1, 0) × the number of times a occurs in
+     the prefix;
+  2. the next word from what followed each a in the prefix, mixed by
+     those weights, smoothed by the training unigram.
+- **Uncertainty is kept:** step 1 is a distribution, never one referent,
+  and nothing is merged permanently.
+
+**Controls:**
+- **D0, matched reads without the learned binding:** step 1 uniform over
+  the prefix's other words (the same two reads).
+- **B3:** direct retrieval, which must be beaten.
+- D's improvement must be over B3 + D0, not only over A.
+
+**Causal diagnostics, after a first result:**
+- rename an entity throughout the prefix;
+- move an object from one character to another;
+- add a competing referent.
+
+Each is measured as the change in D's next-word distribution after a
+referring word, against the change predicted by the edit.
+
+**Criteria (unchanged from the plan):** "computation helps" if C or D
+lowers bits below B3 by at least 0.005 at 10,000 and at 100,000, and
+confirms on confirm3. "Successive" if D lowers bits below B3 + D0 by at
+least 0.003.

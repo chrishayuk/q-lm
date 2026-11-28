@@ -1,0 +1,2 @@
+n=100000 arm=V buckets split=confirm3 | all 4.4893 0-1 5.3412 2-4 4.3790 5+ 4.3322 
+n=100000 arm=V buckets story=cache,bicache,tricache,rcache95,rcache99 split=confirm3 | all 4.2520 0-1 4.8641 2-4 4.1878 5+ 4.1340 

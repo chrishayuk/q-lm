@@ -1478,6 +1478,26 @@ fn knprobs(dir: &str, n: usize, order: usize, out: &str) {
     write(out, lines);
 }
 
+/// For generation: serve the 5-gram's full next-token distribution. Reads one
+/// history per line on stdin (space-separated tokens, possibly empty) and
+/// writes one line: the probability of every vocab.txt entry in order, then END.
+/// The model is the one `knprobs` scores with (the first n training sentences).
+fn knserve(dir: &str, n: usize, order: usize) {
+    use std::io::{BufRead, Write};
+    let train = read(&format!("{dir}/train.txt"));
+    let vocab: Vec<String> = fs::read_to_string(format!("{dir}/vocab.txt")).unwrap().lines().map(String::from).collect();
+    let m = KneserNey::train(&train[..n.min(train.len())], &vocab, order, 0.75);
+    let stdin = std::io::stdin();
+    let mut out = std::io::BufWriter::new(std::io::stdout());
+    for line in stdin.lock().lines() {
+        let hist: Vec<String> = line.unwrap().split_whitespace().map(String::from).collect();
+        let mut row: Vec<String> = vocab.iter().filter(|w| w.as_str() != END).map(|w| format!("{:e}", m.p(&hist, w))).collect();
+        row.push(format!("{:e}", m.p(&hist, END)));
+        writeln!(out, "{}", row.join(" ")).unwrap();
+        out.flush().unwrap();
+    }
+}
+
 /// QLM-004: rule pruning by minimum description length. The grammar learned
 /// from n sentences (with 5 rounds of inside–outside) loses every rule whose
 /// expected count is below tau, then the categories that can no longer
@@ -1578,6 +1598,7 @@ fn main() {
         Some("facts") => facts(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
         Some("roles") => roles(&args[2]),
         Some("knprobs") => knprobs(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap(), &args[5]),
+        Some("knserve") => knserve(&args[2], args[3].parse().unwrap(), args[4].parse().unwrap()),
         Some("baselines") => baselines(&args[2]),
         Some("scale") => scale(&args[2], args[3].parse().unwrap()),
         Some("equiv") => equiv(&args[2], args.get(3).and_then(|x| x.parse().ok()).unwrap_or(usize::MAX)),
